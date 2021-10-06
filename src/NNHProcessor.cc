@@ -1,6 +1,6 @@
 #include "NNHProcessor.hh"
 
-#include "EventShape.h"
+#include "EventShape.hh"
 #include "ParticleInfo.hh"
 
 #include <array>

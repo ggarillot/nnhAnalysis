@@ -7,7 +7,7 @@
 //                             Minor axis, and Thrust, and add ~EventSape().
 // V0.4 May 12/00 : M.Iwasaki  Make necessary modifications.
 //
-#include "EventShape.h"
+#include "EventShape.hh"
 
 unsigned int EventShape::m_maxpart = 1000;
 
