@@ -64,8 +64,9 @@ class ProcessorThread(BaseThread):
 
         NNHProcessor.launch(params, self.files)
 
-        for file in self.files:
-            os.system('rm {file}')
+        if self.remotePath:
+            for file in self.files:
+                os.system(f'rm -f {file}')
 
 
 class HaddThread(BaseThread):
@@ -76,8 +77,7 @@ class HaddThread(BaseThread):
         self.outputFileName = _outputFileName
 
     def launch(self):
-        if os.path.exists(os.path.join(os.getcwd(), self.outputFileName)):
-            os.system(f'rm {self.outputFileName}')
+        os.system(f'rm -f {self.outputFileName}')
 
         haddCmd = f'hadd {self.outputFileName}'
 
