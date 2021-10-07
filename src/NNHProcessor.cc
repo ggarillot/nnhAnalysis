@@ -24,6 +24,7 @@
 #include <CLHEP/Vector/LorentzVector.h>
 #include <CLHEP/Vector/ThreeVector.h>
 
+#include <streamlog/loglevels.h>
 #include <streamlog/streamlog.h>
 #include <string>
 #include <vector>
@@ -62,7 +63,7 @@ NNHProcessor::NNHProcessor()
 
 void NNHProcessor::init()
 {
-    std::cout << "NNHProcessor::init()" << std::endl;
+    streamlog_out(MESSAGE) << "NNHProcessor::init()" << std::endl;
     outputFile = new TFile(rootFileName.c_str(), "RECREATE");
     outputTree = new TTree("tree", "tree");
 
@@ -515,8 +516,8 @@ void NNHProcessor::processEvent(LCEvent* evt)
     }
     catch (std::logic_error& e)
     {
-        streamlog_out(WARNING) << "Run : " << evt->getRunNumber() << ", Event : " << evt->getEventNumber() << " : "
-                               << e.what() << std::endl;
+        streamlog_out(DEBUG) << "Run : " << evt->getRunNumber() << ", Event : " << evt->getEventNumber() << " : "
+                             << e.what() << std::endl;
     }
     try
     {
@@ -524,8 +525,8 @@ void NNHProcessor::processEvent(LCEvent* evt)
     }
     catch (std::logic_error& e)
     {
-        streamlog_out(WARNING) << "Run : " << evt->getRunNumber() << ", Event : " << evt->getEventNumber() << " : "
-                               << e.what() << std::endl;
+        streamlog_out(DEBUG) << "Run : " << evt->getRunNumber() << ", Event : " << evt->getEventNumber() << " : "
+                             << e.what() << std::endl;
     }
     try
     {
@@ -533,8 +534,8 @@ void NNHProcessor::processEvent(LCEvent* evt)
     }
     catch (std::logic_error& e)
     {
-        streamlog_out(WARNING) << "Run : " << evt->getRunNumber() << ", Event : " << evt->getEventNumber() << " : "
-                               << e.what() << std::endl;
+        streamlog_out(DEBUG) << "Run : " << evt->getRunNumber() << ", Event : " << evt->getEventNumber() << " : "
+                             << e.what() << std::endl;
     }
 
     // end of MC stuff
@@ -673,7 +674,7 @@ void NNHProcessor::processEvent(LCEvent* evt)
 
     nEventsProcessed++;
     if (nEventsProcessed % 10000 == 0)
-        std::cout << nEventsProcessed << " events processed" << std::endl;
+        streamlog_out(MESSAGE) << nEventsProcessed << " events processed" << std::endl;
 }
 
 void NNHProcessor::end()
