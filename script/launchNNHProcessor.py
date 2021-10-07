@@ -138,13 +138,13 @@ def launchAnalysis(processID, filesDirectory, remote=False):
 
 if __name__ == "__main__":
 
-    os.environ["MARLIN_DLL"] = '/home/garillot/nnhAnalysis/lib/libnnhAnalysis.so'
+    # os.environ["MARLIN_DLL"] = '/home/garillot/nnhAnalysis/lib/libnnhAnalysis.so'
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--ncores', help='Number of threads', required=False, default=8)
     parser.add_argument('-p', '--processes', help='ProcessIDs to analyse', required=False, nargs='+')
     parser.add_argument('-f', '--filesDirectory', help='Path of remote files', required=True)
-    parser.add_argument('-r', '--remote', help='indicate that files need to be downloaded', required=False)
+    parser.add_argument('-r', '--remote', help='indicate that files need to be downloaded', action='store_true', default=False)
     args = vars(parser.parse_args())
 
     BaseThread.nCores = int(args['ncores'])
