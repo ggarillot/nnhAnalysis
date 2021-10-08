@@ -73,12 +73,28 @@ class ProcessorThread(BaseThread):
             stdout, stderr = download.communicate()
 
             if stderr:
-                print(f'ERROR for {file} :')
-                print(stderr.decode("utf-8"))
 
-                if self.logFileName:
-                    with open(self.logFileName, 'a+') as logFile:
-                        logFile.write(stderr.decode('utf-8'))
+                stderr = stderr.decode("utf-8")
+                stderr = stderr.split('\n')
+
+                actualErrors = []
+                for strs in stderr:
+                    if "Will not delegate x509 proxy to it" in strs:
+                        continue
+                    else:
+                        actualErrors.append(strs)
+
+                if not actualErrors:
+                    okFiles.append(file)
+                else:
+                    print(f'ERROR for {file} :')
+                    for error in actualErrors:
+                        print(error)
+
+                    if self.logFileName:
+                        with open(self.logFileName, 'a+') as logFile:
+                            for error in actualErrors:
+                                logFile.write(error)
             else:
                 okFiles.append(file)
                 if self.logFileName:
