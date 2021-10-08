@@ -78,11 +78,12 @@ class ProcessorThread(BaseThread):
                 stderr = stderr.split('\n')
 
                 actualErrors = []
-                for strs in stderr:
-                    if "Will not delegate x509 proxy to it" in strs:
+                for error in stderr:
+                    error = error.rstrip()
+                    if "Will not delegate x509 proxy to it" in error:
                         continue
-                    else:
-                        actualErrors.append(strs)
+                    elif error:
+                        actualErrors.append(error)
 
                 if not actualErrors:
                     okFiles.append(file)
