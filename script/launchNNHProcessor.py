@@ -69,7 +69,7 @@ class ProcessorThread(BaseThread):
             else:
                 print(f'Download {self.remotePath}/{file}...')
 
-            download = subprocess.Popen(f'gfal-copy {self.remotePath}/{file}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            download = subprocess.Popen(f'gfal-copy {self.remotePath}/{file} .', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             stdout, stderr = download.communicate()
 
             if stderr:
