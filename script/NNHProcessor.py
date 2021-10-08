@@ -3,6 +3,7 @@
 import os
 import random
 import string
+import subprocess
 
 
 class Params:
@@ -13,7 +14,7 @@ class Params:
         self.skip = 0
 
 
-def launch(params, files):
+def launch(params, files, logFileName=None):
 
     fileList = ''
     for name in files:
@@ -50,5 +51,24 @@ def launch(params, files):
     xmlFile.write(xml)
     xmlFile.close()
 
-    os.system(f'Marlin {xmlFileName}')
+    marlin = subprocess.Popen(f'Marlin {xmlFileName}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    stdout, stderr = marlin.communicate()
+
     os.system(f'rm {xmlFileName}')
+
+    if logFileName:
+        with open(logFileName, 'a+') as logFile:
+            logFile.write(stdout.decode('utf-8'))
+    else:
+        print(stdout.decode('utf-8'))
+
+    if stderr:
+        print(f'ERROR for {files} :')
+        print(stderr.decode("utf-8"))
+
+        if logFileName:
+            with open(logFileName, 'a+') as logFile:
+                logFile.write(stderr.decode('utf-8'))
+        return 1
+
+    return 0
