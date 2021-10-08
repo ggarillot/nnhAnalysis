@@ -211,22 +211,26 @@ def launchAnalysis(processID, filesDirectory, outputDirectory, remote=False, log
 
     filesDirectory = f'{filesDirectory}/{processID}'
     fileList = []
+
     if not remote:
         fileList = [f'{filesDirectory}/{file}' for file in os.listdir(filesDirectory) if f'{processID}' in file]
     else:
-        listFiles = subprocess.Popen(f'gfal-ls {filesDirectory} >> {processID}.txt', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        _, stderr = listFiles.communicate()
+        listFiles = subprocess.Popen(f'gfal-ls {filesDirectory}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        stdout, stderr = listFiles.communicate()
 
         if stderr:
             print(f'ERROR for {processID} :')
             print(stderr.decode("utf-8"))
             return
 
-        with open(f'{processID}.txt') as file:
-            lines = file.readlines()
-            fileList = [line.strip('\n') for line in lines]
+        stdout = stdout.decode("utf-8")
+        stdout = stdout.split('\n')
 
-        os.system(f'rm {processID}.txt')
+        files = []
+        for line in stdout:
+            line = line.rstrip()
+            if f'{processID}' in line:
+                files.append(line)
 
     fileList.sort()
 
