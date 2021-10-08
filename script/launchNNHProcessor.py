@@ -226,11 +226,10 @@ def launchAnalysis(processID, filesDirectory, outputDirectory, remote=False, log
         stdout = stdout.decode("utf-8")
         stdout = stdout.split('\n')
 
-        files = []
         for line in stdout:
             line = line.rstrip()
             if f'{processID}' in line:
-                files.append(line)
+                fileList.append(line)
 
     fileList.sort()
 
