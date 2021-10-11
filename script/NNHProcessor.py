@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-import os
-import random
-import string
 import subprocess
 
 
@@ -20,41 +17,21 @@ def launch(params, files, logFileName=None):
     for name in files:
         fileList = f'{fileList}{name} '
 
-    steeringFileName = ''.join(random.choice(
-        string.ascii_letters) for i in range(10))
+    marlinCmd = f'''Marlin $NNH_HOME/script/NNH_steer.xml \\
+                    --global.LCIOInputFiles={fileList} \\
+                    --global.MaxRecordNumber={params.maxRecordNumber} \\
+                    --global.SkipNEvents={params.skip} \\
+                    --NNHProcessor.sqrtZ={params.sqrtS} \\
+                    --NNHProcessor.RootFileName={params.outputFileName}'''
 
-    xmlFileName = f'{steeringFileName}.xml'
+    if logFileName:
+        with open(logFileName, 'a+') as logFile:
+            logFile.write(marlinCmd)
+    else:
+        print(marlinCmd)
 
-    xml = f'''
-<marlin>
-
-	<execute>
-		<processor name="NNHProcessor"/>
-	</execute>
-
-	<global>
-		<parameter name="LCIOInputFiles">{fileList}</parameter>
-		<parameter name="MaxRecordNumber" value="{params.maxRecordNumber}"/>
-		<parameter name="SkipNEvents" value="{params.skip}" />
-		<parameter name="SupressCheck" value="false" />
-		<parameter name="Verbosity" options="DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT"> MESSAGE </parameter>
- 	</global>
-
- 	<processor name="NNHProcessor" type="NNHProcessor">
-        <parameter name="sqrtZ" type="float">{params.sqrtS}</parameter>
-		<parameter name="RootFileName" type="string" >{params.outputFileName}</parameter>
-	</processor>
-
-</marlin>'''
-
-    xmlFile = open(xmlFileName, 'w')
-    xmlFile.write(xml)
-    xmlFile.close()
-
-    marlin = subprocess.Popen(f'Marlin {xmlFileName}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    marlin = subprocess.Popen(marlinCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     stdout, stderr = marlin.communicate()
-
-    os.system(f'rm {xmlFileName}')
 
     if logFileName:
         with open(logFileName, 'a+') as logFile:
