@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import subprocess
 
 
@@ -12,6 +13,8 @@ class Params:
 
 
 def launch(params, files, logFileName=None):
+
+    os.environ['MARLIN_DLL'] = f"{os.environ['NNH_HOME']}/lib/libnnhAnalysis.so"
 
     fileList = ''
     for name in files:
