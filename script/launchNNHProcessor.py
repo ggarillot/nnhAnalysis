@@ -114,7 +114,7 @@ class AnalysisFlow(Observer):
                 remainingFilesToAnalyse = len(AnalysisFlow.individualFiles)
 
             if file:
-                os.system(f'rm - r {file["slcioFile"]}')
+                os.system(f'rm -f {file["slcioFile"]}')
 
                 mergeFile = file['mergeInto']
                 with AnalysisFlow.lock:

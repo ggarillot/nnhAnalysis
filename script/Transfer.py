@@ -56,7 +56,7 @@ class TransferThread(threading.Thread):
 
     def transfer(self, transfer: Transfer):
 
-        cmd = f'gfal-copy {transfer.source}/{transfer.fileName} {transfer.destination}/{transfer.fileName}'
+        cmd = f'gfal-copy -f {transfer.source}/{transfer.fileName} {transfer.destination}/{transfer.fileName}'
 
         # if not shutUp:
         #     print(cmd)
