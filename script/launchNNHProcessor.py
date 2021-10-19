@@ -218,8 +218,6 @@ if __name__ == "__main__":
 
     nCores = int(args['ncores'])
 
-    analysis = AnalysisFlow.initAnalysisFlow(1, nCores, 1)
-
     processesID = [402007, 402008, 402176, 402185, 402009, 402010, 402011, 402012, 402001, 402002, 402013, 402014, 402003, 402004,
                    402005, 402006, 500006, 500008, 500010, 500012, 500062, 500064, 500066, 500068, 500070, 500072, 500074, 500076,
                    500078, 500080, 500082, 500084, 500101, 500102, 500103, 500104, 500105, 500106, 500107, 500108, 500110, 500112,
@@ -242,6 +240,12 @@ if __name__ == "__main__":
         log = True
 
     outputDirectory = args['outputDirectory']
+
+    nDownloadThreads = 0
+    if remote:
+        nDownloadThreads = 8
+
+    analysis = AnalysisFlow.initAnalysisFlow(nDownloadThreads, nCores, 1)
 
     for processID in processesID:
         analysis.launchAnalysis(processID, filesDirectory, outputDirectory, remote)
