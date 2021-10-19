@@ -1,271 +1,206 @@
 #!/usr/bin/env python
-
-import os
-import abc
-import time
-import threading
 import argparse
+import os
 import subprocess
+import threading
 
+from Transfer import TransferThread
 import NNHProcessor
+from NNHProcessor import NNHProcessorThread
+from Merge import MergeThread
+
+from Observer import Observer
 
 
-class BaseThread(threading.Thread):
+class AnalysisFlow(Observer):
 
-    __metaclass__ = abc.ABCMeta
+    mergedFiles = {}
+    individualFiles = {}
+    filesToDownload = {}
+    failedFiles = {}
 
-    nCores = 1
-    threads = []
-    waitingThreads = []
     lock = threading.Lock()
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        self.event = threading.Event()
+        self.threadsToHandle = []
 
-    @abc.abstractmethod
-    def launch(self):
-        pass
+    def initAnalysisFlow(nThreadsTransfer, nThreadsProcess, nThreadsMerge):
+        analysis = AnalysisFlow()
 
-    def run(self):
-        with BaseThread.lock:
-            BaseThread.waitingThreads.append(self)
+        for _ in range(nThreadsTransfer):
+            thread = TransferThread()
+            analysis.threadsToHandle.append(thread)
+        for _ in range(nThreadsProcess):
+            thread = NNHProcessorThread()
+            analysis.threadsToHandle.append(thread)
+        for _ in range(nThreadsMerge):
+            thread = MergeThread()
+            analysis.threadsToHandle.append(thread)
 
-        while True:
-            with BaseThread.lock:
-                nCurrentThreads = len(BaseThread.threads)
+        for thread in analysis.threadsToHandle:
+            thread.attachObserver(analysis)
+            thread.start()
 
-                if nCurrentThreads < BaseThread.nCores:
-                    t = threading.Thread(target=self.launch)
-                    t.start()
-                    BaseThread.threads.append(self)
-                    BaseThread.waitingThreads.remove(self)
-                    break
+        return analysis
 
-            time.sleep(1)
+    def close():
+        TransferThread.closeThreads()
+        NNHProcessorThread.closeThreads()
+        MergeThread.closeThreads()
 
-        t.join()
-        with BaseThread.lock:
-            BaseThread.threads.remove(self)
-            print(f'{len(BaseThread.waitingThreads)} threads remaining...')
+    def addFile(self, targetMergedFileName, fileNamesToBeMerged, outputDirectory, remoteDirectory=None):
 
+        mergedFile = {'notProcessed': [], 'processed': [], 'failed': [], 'outputDir': outputDirectory}
+        with AnalysisFlow.lock:
+            for i, file in enumerate(fileNamesToBeMerged):
+                outputIndivName = targetMergedFileName.replace('.root', f'-{i}.root')
+                AnalysisFlow.filesToDownload[file] = {'rootFileName': outputIndivName}
+                AnalysisFlow.individualFiles[outputIndivName] = {'mergeInto': targetMergedFileName}
+                mergedFile['notProcessed'].append(outputIndivName)
 
-class ProcessorThread(BaseThread):
-
-    def __init__(self, _files, _outputFileName, _logFileName=None, remotePath=None):
-        BaseThread.__init__(self)
-        self.files = _files
-        self.outputFileName = _outputFileName
-        self.logFileName = _logFileName
-        self.remotePath = remotePath
-
-    def downloadFiles(self):
-
-        okFiles = []
-        for file in self.files:
-
-            if self.logFileName:
-                with open(self.logFileName, 'w') as logFile:
-                    logFile.write(f'Download {self.remotePath}/{file}...\n')
-            else:
-                print(f'Download {self.remotePath}/{file}...')
-
-            download = subprocess.Popen(f'gfal-copy {self.remotePath}/{file} .', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-            stdout, stderr = download.communicate()
-
-            if stderr:
-
-                stderr = stderr.decode("utf-8")
-                stderr = stderr.split('\n')
-
-                actualErrors = []
-                for error in stderr:
-                    error = error.rstrip()
-                    if "Will not delegate x509 proxy to it" in error:
-                        continue
-                    elif error:
-                        actualErrors.append(error)
-
-                if not actualErrors:
-                    okFiles.append(file)
+                if remoteDirectory:
+                    self.launchTransfer(file, remoteDirectory, '.')
                 else:
-                    print(f'ERROR for {file} :')
-                    for error in actualErrors:
-                        print(error)
+                    self.launchNNHProcessor(file, outputIndivName)
 
-                    if self.logFileName:
-                        with open(self.logFileName, 'a+') as logFile:
-                            for error in actualErrors:
-                                logFile.write(error)
-            else:
-                okFiles.append(file)
-                if self.logFileName:
-                    with open(self.logFileName, 'w') as logFile:
-                        logFile.write(f'Download of {self.remotePath}/{file} complete\n')
-                else:
-                    print(f'Download of {self.remotePath}/{file} complete')
+            AnalysisFlow.mergedFiles[targetMergedFileName] = mergedFile
 
-        return okFiles
+    def launchTransfer(self, fileName, sourcePath, destinationPath):
+        file = AnalysisFlow.individualFiles[fileName]
+        TransferThread.addTransfer(fileName, sourcePath, destinationPath)
 
-    def launch(self):
-        # print(f'Launch processor for files : {self.files}, to output : {self.outputFileName}')
-
-        okFiles = self.files
-        if self.remotePath:
-            okFiles = self.downloadFiles()
-
+    def launchNNHProcessor(self, inputFileName, outputFileName):
         params = NNHProcessor.Params()
-        params.outputFileName = self.outputFileName
-        params.maxRecordNumber = 0
-        params.skip = 0
+        params.inputFileNames = [inputFileName]
+        params.outputFileName = outputFileName
+        NNHProcessorThread.addParams(params)
 
-        success = NNHProcessor.launch(params, okFiles, self.logFileName)
+    def launchMerge(self, outputFileName, fileNamesToMerge):
+        MergeThread.addMergeTask(outputFileName, fileNamesToMerge)
 
-        if self.remotePath:
-            for file in self.files:
-                os.system(f'rm -f {file}')
+    def update(self, fileName, msg):
 
-        # print(f'Processor for files : {self.files}, to output : {self.outputFileName} completed')
+        if msg.startswith('TRANSFER'):
+            with AnalysisFlow.lock:
+                file = AnalysisFlow.filesToDownload.pop(fileName, None)
+                remainingFilesToDownload = len(AnalysisFlow.filesToDownload)
 
+            if file:
+                rootFileName = file['rootFileName']
 
-class MergeThread(BaseThread):
+                if msg.endswith('SUCCESS'):
+                    self.launchNNHProcessor(file, rootFileName)
 
-    def __init__(self, _files, _logFiles, _outputFileNameBase, _outputDirectory):
-        BaseThread.__init__(self)
-        self.files = _files
-        self.logFiles = _logFiles
-        self.outputFileNameBase = _outputFileNameBase
-        self.outputDirectory = _outputDirectory
+                elif msg.endswith('FAIL'):
+                    print(f'ERROR : transfer of {fileName} failed')
+                    with AnalysisFlow.lock:
+                        mergedFile = AnalysisFlow.individualFiles[rootFileName]['mergeInto']
 
-    def launch(self):
-        os.system(f'rm -f {self.outputFileNameBase}.root')
-        os.system(f'rm -f {self.outputFileNameBase}.txt')
+                        AnalysisFlow.mergedFiles[mergedFile]['notProcessed'].remove(rootFileName)
+                        AnalysisFlow.mergedFiles[mergedFile]['failed'].append(rootFileName)
+                else:
+                    print(f'ERROR : message unknown : {msg}')
 
-        currentFiles = os.listdir()
+                print(f'{remainingFilesToDownload} remaining files to download')
 
-        processedFiles = []
-
-        for file in self.files:
-            if file in currentFiles:
-                processedFiles.append(file)
             else:
-                self.outputFileNameBase = f'incomplete_{self.outputFileNameBase}.root'
+                print(f'ERROR : unknown file :{fileName}')
 
-        if self.logFiles:
-            with open(f'{self.outputFileNameBase}.txt', 'w') as mergedlogFile:
+        elif msg.startswith('NNH'):
 
-                self.logFiles.sort()
-                for singlelogFileName in self.logFiles:
+            with AnalysisFlow.lock:
+                file = AnalysisFlow.individualFiles.pop(fileName, None)
+                remainingFilesToAnalyse = len(AnalysisFlow.individualFiles)
 
-                    fileNameBase = singlelogFileName.split('.txt')[0]
-                    mergedlogFile.write(f'{fileNameBase} : ==================================================================== \n\n')
+            if file:
+                mergeFile = file['mergeInto']
+                with AnalysisFlow.lock:
+                    AnalysisFlow.mergedFiles[mergeFile]['notProcessed'].remove(fileName)
 
-                    with open(singlelogFileName, 'r') as singleLogFile:
-                        for line in singleLogFile.readlines():
-                            mergedlogFile.write(line)
-                        mergedlogFile.write('\n\n\n')
+                    if msg.endswith('SUCCESS'):
+                        AnalysisFlow.mergedFiles[mergeFile]['processed'].append(fileName)
 
-        haddCmd = f'hadd {self.outputFileNameBase}.root'
+                    elif msg.endswith('FAIL'):
+                        print(f'ERROR : analyse of {fileName} failed')
+                        AnalysisFlow.mergedFiles[mergeFile]['failed'].append(fileName)
 
-        for file in processedFiles:
-            haddCmd = f'{haddCmd} {file}'
+                    else:
+                        print(f'ERROR : message unknown : {msg}')
 
-        if self.logFiles:
-            with open(f'{self.outputFileNameBase}.txt', 'a+') as mergedlogFile:
-                mergedlogFile.write('===========================================================\n\n')
-                mergedlogFile.write(f'{haddCmd}\n')
-            haddCmd = f'{haddCmd} >> {self.outputFileNameBase}.txt'
+                    if not AnalysisFlow.mergedFiles[mergeFile]['notProcessed']:
+                        self.launchMerge(mergeFile, AnalysisFlow.mergedFiles[mergeFile]['processed'])
+
+                print(f'{remainingFilesToAnalyse} remaining files to analyse')
+
+            else:
+                print(f'ERROR : unknown file :{fileName}')
+
+        elif msg.startswith('MERGE'):
+            with AnalysisFlow.lock:
+                file = AnalysisFlow.mergedFiles.pop(fileName, None)
+                remainingFilesToMerge = len(AnalysisFlow.mergedFiles)
+
+            if file:
+
+                for ifile in file['processed']:
+                    os.system(f'rm -f {ifile}')
+                for ifile in file['failed']:
+                    os.system(f'rm -f {ifile}')
+
+                if msg.endswith('SUCCESS'):
+                    os.system(f'mv {fileName} {file["outputDir"]}')
+                elif msg.endswith('FAIL'):
+                    os.system(f'rm -f {fileName}')
+                else:
+                    print(f'ERROR : message unknown : {msg}')
+
+                print(f'{remainingFilesToMerge} remaining files to merge')
+
+            else:
+                print(f'ERROR : unknown file :{fileName}')
+
         else:
-            print(haddCmd)
+            print(f'ERROR : unknown message : {msg}')
 
-        hadd = subprocess.Popen(haddCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        stdout, stderr = hadd.communicate()
+        with AnalysisFlow.lock:
+            if not AnalysisFlow.mergedFiles:
+                self.event.set()
 
-        if self.logFiles:
-            with open(f'{self.outputFileNameBase}.txt', 'a+') as mergedlogFile:
-                mergedlogFile.write(stdout.decode('utf-8'))
-        else:
-            print(stdout.decode('utf-8'))
+    def launchAnalysis(self, processID, filesDirectory, outputDirectory, remote=False):
 
-        if stderr:
-            print(stderr.decode("utf-8"))
-            if self.logFiles:
-                with open(f'{self.outputFileNameBase}.txt', 'a+') as mergedlogFile:
-                    mergedlogFile.write(stderr.decode('utf-8'))
-
-        for file in processedFiles:
-            os.system(f'rm -f {file}')
-
-        for file in self.logFiles:
-            os.system(f'rm -f {file}')
-
-        os.system(f'mkdir -p {self.outputDirectory}/log')
-
-        os.system(f'mv {self.outputFileNameBase}.root {self.outputDirectory}')
-
-        if self.logFiles:
-            os.system(f'mv {self.outputFileNameBase}.txt {self.outputDirectory}/log')
-
-
-def launchAnalysis(processID, filesDirectory, outputDirectory, remote=False, log=None):
-    # print(f"Launch analysis of process {processID}...")
-
-    filesDirectory = f'{filesDirectory}/{processID}'
-    fileList = []
-
-    if not remote:
-        fileList = [f'{filesDirectory}/{file}' for file in os.listdir(filesDirectory) if f'{processID}' in file]
-    else:
-        listFiles = subprocess.Popen(f'gfal-ls {filesDirectory}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        stdout, stderr = listFiles.communicate()
-
-        if stderr:
-            print(f'ERROR for {processID} :')
-            print(stderr.decode("utf-8"))
-            return
-
-        stdout = stdout.decode("utf-8")
-        stdout = stdout.split('\n')
-
-        for line in stdout:
-            line = line.rstrip()
-            if f'{processID}' in line:
-                fileList.append(line)
-
-    fileList.sort()
-
-    fileList = fileList[0:2]
-
-    print(f'{processID} : {len(fileList)} files to process')
-
-    filesToMerge = []
-    logFilesToMerge = []
-
-    threads = []
-    for i, file in enumerate(fileList):
-        outputFileName = f'{processID}-{i}.root'
-
-        logFile = None
-        if log:
-            logFile = f'{processID}-{i}.txt'
-            logFilesToMerge.append(logFile)
+        filesDirectory = f'{filesDirectory}/{processID}'
+        fileNameList = []
 
         if not remote:
-            p = ProcessorThread([file], outputFileName, logFile)
+            fileNameList = [f'{filesDirectory}/{file}' for file in os.listdir(filesDirectory) if f'{processID}' in file]
         else:
-            p = ProcessorThread([file], outputFileName, logFile, filesDirectory)
+            listFiles = subprocess.Popen(f'gfal-ls {filesDirectory}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            stdout, stderr = listFiles.communicate()
 
-        filesToMerge.append(outputFileName)
-        p.start()
-        threads.append(p)
+            if stderr:
+                print(f'ERROR for {processID} :')
+                print(stderr.decode("utf-8"))
+                return
 
-    for p in threads:
-        p.join()
+            stdout = stdout.decode("utf-8")
+            stdout = stdout.split('\n')
 
-    outputFileNameBase = f'{processID}'
+            for line in stdout:
+                line = line.rstrip()
+                if f'{processID}' in line:
+                    fileNameList.append(line)
 
-    t = MergeThread(filesToMerge, logFilesToMerge, outputFileNameBase, outputDirectory)
-    t.start()
-    t.join()
+        fileNameList.sort()
+
+        # fileNameList = fileNameList[0:2]
+
+        print(f'{processID} : {len(fileNameList)} files to process')
+
+        if not remote:
+            self.addFile(f'{processID}.root', fileNameList, outputDirectory)
+        else:
+            self.addFile(f'{processID}.root', fileNameList, outputDirectory, filesDirectory)
 
 
 if __name__ == "__main__":
@@ -275,11 +210,13 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--processes', help='ProcessIDs to analyse', required=False, nargs='+')
     parser.add_argument('-f', '--filesDirectory', help='Path of remote files', required=True)
     parser.add_argument('-r', '--remote', help='indicate that files need to be downloaded', action='store_true', default=False)
-    parser.add_argument('-o', '--output', help='output directory', required=True)
+    parser.add_argument('-o', '--outputDirectory', help='output directory', required=True)
     parser.add_argument('-l', '--log', help='output in text files instead of terminal', action='store_true', default=False)
     args = vars(parser.parse_args())
 
-    BaseThread.nCores = int(args['ncores'])
+    nCores = int(args['ncores'])
+
+    analysis = AnalysisFlow.initAnalysisFlow(1, nCores, 1)
 
     processesID = [402007, 402008, 402176, 402185, 402009, 402010, 402011, 402012, 402001, 402002, 402013, 402014, 402003, 402004,
                    402005, 402006, 500006, 500008, 500010, 500012, 500062, 500064, 500066, 500068, 500070, 500072, 500074, 500076,
@@ -302,13 +239,10 @@ if __name__ == "__main__":
     if args['log']:
         log = True
 
-    output = args['output']
+    outputDirectory = args['outputDirectory']
 
-    threads = []
     for processID in processesID:
-        p = threading.Thread(target=launchAnalysis, args=(processID, filesDirectory, output, remote, log))
-        p.start()
-        threads.append(p)
+        analysis.launchAnalysis(processID, filesDirectory, outputDirectory, remote)
 
-    for p in threads:
-        p.join()
+    analysis.event.wait()
+    AnalysisFlow.close()
