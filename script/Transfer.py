@@ -51,7 +51,7 @@ class TransferThread(threading.Thread):
             if transfer is None:
                 break
 
-            self.transfer(transfer.fileName, transfer.source, transfer.destination)
+            self.transfer(transfer)
             TransferThread.transfers.task_done()
 
     def transfer(self, transfer: Transfer):

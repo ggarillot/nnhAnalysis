@@ -56,7 +56,7 @@ class AnalysisFlow(Observer):
             for i, file in enumerate(fileNamesToBeMerged):
                 outputIndivName = targetMergedFileName.replace('.root', f'-{i}.root')
                 AnalysisFlow.filesToDownload[file] = {'rootFileName': outputIndivName}
-                AnalysisFlow.individualFiles[outputIndivName] = {'mergeInto': targetMergedFileName}
+                AnalysisFlow.individualFiles[outputIndivName] = {'mergeInto': targetMergedFileName, 'slcioFile': file}
                 mergedFile['notProcessed'].append(outputIndivName)
 
                 if remoteDirectory:
@@ -67,7 +67,6 @@ class AnalysisFlow(Observer):
             AnalysisFlow.mergedFiles[targetMergedFileName] = mergedFile
 
     def launchTransfer(self, fileName, sourcePath, destinationPath):
-        file = AnalysisFlow.individualFiles[fileName]
         TransferThread.addTransfer(fileName, sourcePath, destinationPath)
 
     def launchNNHProcessor(self, inputFileName, outputFileName):
@@ -90,10 +89,11 @@ class AnalysisFlow(Observer):
                 rootFileName = file['rootFileName']
 
                 if msg.endswith('SUCCESS'):
-                    self.launchNNHProcessor(file, rootFileName)
+                    self.launchNNHProcessor(fileName, rootFileName)
 
                 elif msg.endswith('FAIL'):
                     print(f'ERROR : transfer of {fileName} failed')
+                    os.system(f'rm -f {fileName}')
                     with AnalysisFlow.lock:
                         mergedFile = AnalysisFlow.individualFiles[rootFileName]['mergeInto']
 
@@ -114,6 +114,8 @@ class AnalysisFlow(Observer):
                 remainingFilesToAnalyse = len(AnalysisFlow.individualFiles)
 
             if file:
+                os.system(f'rm - r {file["slcioFile"]}')
+
                 mergeFile = file['mergeInto']
                 with AnalysisFlow.lock:
                     AnalysisFlow.mergedFiles[mergeFile]['notProcessed'].remove(fileName)
