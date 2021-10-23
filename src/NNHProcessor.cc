@@ -604,7 +604,7 @@ void NNHProcessor::processEvent(LCEvent* evt)
         catch (std::logic_error& e)
         {
             streamlog_out(DEBUG) << "Run : " << evt->getRunNumber() << ", Event : " << evt->getEventNumber() << " : "
-                                 << "No particles in event !" << std::endl;
+                                 << "Impossible recoil mass !" << std::endl;
             sl_rec_m = 0;
         }
     }
@@ -662,6 +662,10 @@ void NNHProcessor::processEvent(LCEvent* evt)
     //     reco_Y23 = jet_parameter(jets_final_bis[1], jets_final_bis[2], 250);
     //     reco_Y24 = jet_parameter(jets_final_bis[1], jets_final_bis[3], 250);
     //     reco_Y34 = jet_parameter(jets_final_bis[2], jets_final_bis[3], 250);
+
+    constexpr float minYCut = std::numeric_limits<float>::min();
+    for (auto& yCut : yCutArray)
+        yCut = std::max(yCut, minYCut);
 
     y_12 = -log10(yCutArray[1]);
     y_23 = -log10(yCutArray[2]);

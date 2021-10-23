@@ -96,29 +96,29 @@ class NNHProcessor : public marlin::Processor
     float minorThrust = -1;
 
     // MC variables
-    float mc_ISR_e = -1;
-    float mc_ISR_pt = -1;
+    float mc_ISR_e = 0;
+    float mc_ISR_pt = 0;
 
-    int   mc_nu_flavor = -1;
-    float mc_nu_e = -1;
-    float mc_nu_pt = -1;
-    float mc_nu_m = -1;
+    int   mc_nu_flavor = 0;
+    float mc_nu_e = 0;
+    float mc_nu_pt = 0;
+    float mc_nu_m = 0;
     float mc_nu_cosBetw = -2;
 
-    float mc_higgs_e = -1;
-    float mc_higgs_pt = -1;
-    float mc_higgs_m = -1;
+    float mc_higgs_e = 0;
+    float mc_higgs_pt = 0;
+    float mc_higgs_m = 0;
 
-    int mc_higgs_decay = -1;
-    int mc_higgs_subDecay = -1;
+    int mc_higgs_decay = 0;
+    int mc_higgs_subDecay = 0;
 
-    float mc_higgs_decay1_e = -1;
-    float mc_higgs_decay1_pt = -1;
-    float mc_higgs_decay1_m = -1;
-    float mc_higgs_decay2_e = -1;
-    float mc_higgs_decay2_pt = -1;
-    float mc_higgs_decay2_m = -1;
-    float mc_higgs_decay_cosBetw = -1;
+    float mc_higgs_decay1_e = 0;
+    float mc_higgs_decay1_pt = 0;
+    float mc_higgs_decay1_m = 0;
+    float mc_higgs_decay2_e = 0;
+    float mc_higgs_decay2_pt = 0;
+    float mc_higgs_decay2_m = 0;
+    float mc_higgs_decay_cosBetw = -2;
 
     // debug variables
     int nEventsProcessed = 0;
