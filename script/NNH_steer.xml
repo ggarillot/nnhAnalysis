@@ -13,6 +13,7 @@
  	</global>
 
  	<processor name="NNHProcessor" type="NNHProcessor">
+        <parameter name="processID" type="int"> 0 </parameter>
         <parameter name="sqrtZ" type="float"> 250 </parameter>
 		<parameter name="RootFileName" type="string" > output.root </parameter>
 	</processor>

@@ -57,6 +57,7 @@ class NNHProcessor : public marlin::Processor
     std::vector<fastjet::PseudoJet> particles{};
 
     // event variables
+    int   processID = 0;
     float sqrtS = -1;
 
     float visible_e = 0;

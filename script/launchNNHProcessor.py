@@ -49,28 +49,34 @@ class AnalysisFlow(Observer):
         NNHProcessorThread.closeThreads()
         MergeThread.closeThreads()
 
-    def addFile(self, targetMergedFileName, fileNamesToBeMerged, outputDirectory, remoteDirectory=None):
+    def addFile(self, targetMergedFileName, fileNamesToBeMerged, outputDirectory, processID, remoteDirectory=None):
 
         mergedFile = {'notProcessed': [], 'processed': [], 'failed': [], 'outputDir': outputDirectory}
         with AnalysisFlow.lock:
             for i, file in enumerate(fileNamesToBeMerged):
                 outputIndivName = targetMergedFileName.replace('.root', f'-{i}.root')
-                AnalysisFlow.filesToDownload[file] = {'rootFileName': outputIndivName}
-                AnalysisFlow.individualFiles[outputIndivName] = {'mergeInto': targetMergedFileName, 'slcioFile': file}
+
+                AnalysisFlow.individualFiles[outputIndivName] = {'mergeInto': targetMergedFileName, 'slcioFileToDelete': None}
+
+                if remoteDirectory:
+                    AnalysisFlow.filesToDownload[file] = {'rootFileName': outputIndivName, 'processID': processID}
+                    AnalysisFlow.individualFiles[outputIndivName]['slcioFileToDelete'] = file
+
                 mergedFile['notProcessed'].append(outputIndivName)
 
                 if remoteDirectory:
                     self.launchTransfer(file, remoteDirectory, '.')
                 else:
-                    self.launchNNHProcessor(file, outputIndivName)
+                    self.launchNNHProcessor(file, outputIndivName, processID)
 
             AnalysisFlow.mergedFiles[targetMergedFileName] = mergedFile
 
     def launchTransfer(self, fileName, sourcePath, destinationPath):
         TransferThread.addTransfer(fileName, sourcePath, destinationPath)
 
-    def launchNNHProcessor(self, inputFileName, outputFileName):
+    def launchNNHProcessor(self, inputFileName, outputFileName, processID):
         params = NNHProcessor.Params()
+        params.processID = processID
         params.inputFileNames = [inputFileName]
         params.outputFileName = outputFileName
         NNHProcessorThread.addParams(params)
@@ -87,9 +93,10 @@ class AnalysisFlow(Observer):
 
             if file:
                 rootFileName = file['rootFileName']
+                processID = file['processID']
 
                 if msg.endswith('SUCCESS'):
-                    self.launchNNHProcessor(fileName, rootFileName)
+                    self.launchNNHProcessor(fileName, rootFileName, processID)
 
                 elif msg.endswith('FAIL'):
                     print(f'ERROR : transfer of {fileName} failed')
@@ -114,7 +121,8 @@ class AnalysisFlow(Observer):
                 remainingFilesToAnalyse = len(AnalysisFlow.individualFiles)
 
             if file:
-                os.system(f'rm -f {file["slcioFile"]}')
+                if file["slcioFileToDelete"]:
+                    os.system(f'rm -f {file["slcioFileToDelete"]}')
 
                 mergeFile = file['mergeInto']
                 with AnalysisFlow.lock:
@@ -200,9 +208,9 @@ class AnalysisFlow(Observer):
         print(f'{processID} : {len(fileNameList)} files to process')
 
         if not remote:
-            self.addFile(f'{processID}.root', fileNameList, outputDirectory)
+            self.addFile(f'{processID}.root', fileNameList, outputDirectory, processID)
         else:
-            self.addFile(f'{processID}.root', fileNameList, outputDirectory, filesDirectory)
+            self.addFile(f'{processID}.root', fileNameList, outputDirectory, processID, filesDirectory)
 
 
 if __name__ == "__main__":
