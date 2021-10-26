@@ -58,6 +58,7 @@ class NNHProcessor : public marlin::Processor
 
     // event variables
     int   processID = 0;
+    int   event = 0;
     float sqrtS = -1;
 
     float visible_e = 0;

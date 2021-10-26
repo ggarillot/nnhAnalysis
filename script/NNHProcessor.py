@@ -10,8 +10,6 @@ from Observer import Observer
 class Params:
     def __init__(self):
         self.inputFileNames = []
-        self.processID = 0
-        self.sqrtS = 250
         self.outputFileName = ''
         self.maxRecordNumber = 0
         self.skip = 0
@@ -60,8 +58,6 @@ class NNHProcessorThread(threading.Thread):
                         --global.LCIOInputFiles={fileList} \\
                         --global.MaxRecordNumber={params.maxRecordNumber} \\
                         --global.SkipNEvents={params.skip} \\
-                        --NNHProcessor.processID={params.processID} \\
-                        --NNHProcessor.sqrtZ={params.sqrtS} \\
                         --NNHProcessor.RootFileName={params.outputFileName}'''
 
         marlin = subprocess.Popen(marlinCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)

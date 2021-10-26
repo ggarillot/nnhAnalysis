@@ -50,10 +50,6 @@ double yijDistance(const fastjet::PseudoJet& i, const fastjet::PseudoJet& j, con
 NNHProcessor::NNHProcessor()
     : Processor("NNHProcessor")
 {
-    registerProcessorParameter("processID", "ID of the physics processus", processID, 0);
-
-    registerProcessorParameter("sqrtS", "Collision energy", sqrtS, 250.f);
-
     registerProcessorParameter("RootFileName", "File name for the root output", rootFileName, std::string("test.root"));
 
     registerProcessorParameter("MCParticlesCollectionName", "Name of the MC particles collection",
@@ -71,6 +67,7 @@ void NNHProcessor::init()
 
     // Collision Energy
     outputTree->Branch("processID", &processID);
+    outputTree->Branch("event", &event);
     outputTree->Branch("sqrtS", &sqrtS);
 
     outputTree->Branch("isValid", &isValid);
@@ -491,6 +488,10 @@ double NNHProcessor::computeSphericity(const std::vector<fastjet::PseudoJet>& pa
 void NNHProcessor::processEvent(LCEvent* evt)
 {
     clear();
+
+    processID = evt->getParameters().getIntVal(std::string("ProcessID"));
+    event = evt->getParameters().getIntVal(std::string("Event Number"));
+    sqrtS = evt->getParameters().getFloatVal(std::string("Energy"));
 
     recoCol = evt->getCollection(reconstructedParticleCollectionName);
     const int nRecoParticles = recoCol->getNumberOfElements();

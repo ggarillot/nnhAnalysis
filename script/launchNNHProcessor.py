@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import os
+import sys
 import subprocess
 import threading
 
@@ -23,6 +24,7 @@ class AnalysisFlow(Observer):
 
     def __init__(self):
         self.event = threading.Event()
+        self.event.set()
         self.threadsToHandle = []
 
     def initAnalysisFlow(nThreadsTransfer, nThreadsProcess, nThreadsMerge):
@@ -49,7 +51,9 @@ class AnalysisFlow(Observer):
         NNHProcessorThread.closeThreads()
         MergeThread.closeThreads()
 
-    def addFile(self, targetMergedFileName, fileNamesToBeMerged, outputDirectory, processID, remoteDirectory=None):
+    def addFile(self, targetMergedFileName, fileNamesToBeMerged, outputDirectory, remoteDirectory=None):
+
+        self.event.clear()
 
         mergedFile = {'notProcessed': [], 'processed': [], 'failed': [], 'outputDir': outputDirectory}
         with AnalysisFlow.lock:
@@ -59,7 +63,7 @@ class AnalysisFlow(Observer):
                 AnalysisFlow.individualFiles[outputIndivName] = {'mergeInto': targetMergedFileName, 'slcioFileToDelete': None}
 
                 if remoteDirectory:
-                    AnalysisFlow.filesToDownload[file] = {'rootFileName': outputIndivName, 'processID': processID}
+                    AnalysisFlow.filesToDownload[file] = {'rootFileName': outputIndivName}
                     AnalysisFlow.individualFiles[outputIndivName]['slcioFileToDelete'] = file
 
                 mergedFile['notProcessed'].append(outputIndivName)
@@ -67,16 +71,15 @@ class AnalysisFlow(Observer):
                 if remoteDirectory:
                     self.launchTransfer(file, remoteDirectory, '.')
                 else:
-                    self.launchNNHProcessor(file, outputIndivName, processID)
+                    self.launchNNHProcessor(file, outputIndivName)
 
             AnalysisFlow.mergedFiles[targetMergedFileName] = mergedFile
 
     def launchTransfer(self, fileName, sourcePath, destinationPath):
         TransferThread.addTransfer(fileName, sourcePath, destinationPath)
 
-    def launchNNHProcessor(self, inputFileName, outputFileName, processID):
+    def launchNNHProcessor(self, inputFileName, outputFileName):
         params = NNHProcessor.Params()
-        params.processID = processID
         params.inputFileNames = [inputFileName]
         params.outputFileName = outputFileName
         NNHProcessorThread.addParams(params)
@@ -93,10 +96,9 @@ class AnalysisFlow(Observer):
 
             if file:
                 rootFileName = file['rootFileName']
-                processID = file['processID']
 
                 if msg.endswith('SUCCESS'):
-                    self.launchNNHProcessor(fileName, rootFileName, processID)
+                    self.launchNNHProcessor(fileName, rootFileName)
 
                 elif msg.endswith('FAIL'):
                     print(f'ERROR : transfer of {fileName} failed')
@@ -112,7 +114,7 @@ class AnalysisFlow(Observer):
                 print(f'{remainingFilesToDownload} remaining files to download')
 
             else:
-                print(f'ERROR : unknown file :{fileName}')
+                print(f'ERROR : unknown file : {fileName}')
 
         elif msg.startswith('NNH'):
 
@@ -203,17 +205,21 @@ class AnalysisFlow(Observer):
 
         fileNameList.sort()
 
-        # fileNameList = fileNameList[0:2]
+        #fileNameList = fileNameList[0:2]
 
         print(f'{processID} : {len(fileNameList)} files to process')
 
         if not remote:
-            self.addFile(f'{processID}.root', fileNameList, outputDirectory, processID)
+            self.addFile(f'{processID}.root', fileNameList, outputDirectory)
         else:
-            self.addFile(f'{processID}.root', fileNameList, outputDirectory, processID, filesDirectory)
+            self.addFile(f'{processID}.root', fileNameList, outputDirectory, filesDirectory)
 
 
 if __name__ == "__main__":
+
+    if 'NNH_HOME' not in os.environ:
+        print('ERROR : env variable NNH_HOME is not set')
+        sys.exit(1)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--ncores', help='Number of threads', required=False, default=8)
