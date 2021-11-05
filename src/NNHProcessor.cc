@@ -550,6 +550,10 @@ void NNHProcessor::processEvent(LCEvent* evt)
     cosThrust = std::abs(shape.thrustAxis().cosTheta());
     majorThrust = shape.majorThrust();
     minorThrust = shape.minorThrust();
+
+    if (minorThrust != minorThrust) // handle NaN case
+        minorThrust = 0;
+
     sphericity = computeSphericity(particles);
 
     // Jets study

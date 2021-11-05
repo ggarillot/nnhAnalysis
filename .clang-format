@@ -1,6 +1,7 @@
 ﻿---
 AlignConsecutiveDeclarations: true
 AllowShortFunctionsOnASingleLine: Inline
+AlwaysBreakTemplateDeclarations: Yes
 BinPackParameters: false
 BreakConstructorInitializersBeforeComma: true
 BreakConstructorInitializers: BeforeColon

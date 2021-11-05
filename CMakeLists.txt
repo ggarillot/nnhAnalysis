@@ -46,6 +46,7 @@ include_directories( ${PROJECT_SOURCE_DIR}/include )
 # definitions to pass to the compiler
 ADD_DEFINITIONS( "-Wall -ansi -pedantic -std=c++17 -Weffc++" )
 ADD_DEFINITIONS( "-Wno-long-long" )
+ADD_DEFINITIONS( "-O3" )
 
 file(GLOB_RECURSE sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB_RECURSE headers ${PROJECT_SOURCE_DIR}/include/*.hh ${PROJECT_SOURCE_DIR}/include/*.hpp)
