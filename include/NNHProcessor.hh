@@ -61,11 +61,12 @@ class NNHProcessor : public marlin::Processor
     int   event = 0;
     float sqrtS = -1;
 
+    bool isValid = false;
+
     float visible_e = 0;
     float visible_pt = 0;
     float visible_m = 0;
-
-    bool isValid = false;
+    int   nParticles = 0;
 
     // Reco variables
     float w1_m = -1;

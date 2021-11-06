@@ -74,6 +74,7 @@ void NNHProcessor::init()
     outputTree->Branch("visible_e", &visible_e);
     outputTree->Branch("visible_pt", &visible_pt);
     outputTree->Branch("visible_m", &visible_m);
+    outputTree->Branch("nParticles", &nParticles);
 
     outputTree->Branch("w1_m", &w1_m);
     outputTree->Branch("w1_pt", &w1_pt);
@@ -494,10 +495,10 @@ void NNHProcessor::processEvent(LCEvent* evt)
     sqrtS = evt->getParameters().getFloatVal(std::string("Energy"));
 
     recoCol = evt->getCollection(reconstructedParticleCollectionName);
-    const int nRecoParticles = recoCol->getNumberOfElements();
-    particles.reserve(nRecoParticles);
+    nParticles = recoCol->getNumberOfElements();
+    particles.reserve(nParticles);
 
-    for (int index = 0; index < nRecoParticles; ++index)
+    for (int index = 0; index < nParticles; ++index)
     {
         auto recoPart = dynamic_cast<EVENT::ReconstructedParticle*>(recoCol->getElementAt(index));
 
@@ -564,7 +565,6 @@ void NNHProcessor::processEvent(LCEvent* evt)
     auto j = fastjet::JetDefinition(fastjet::ee_kt_algorithm);
     auto cs = fastjet::ClusterSequence(particles, j);
 
-    int  nParticles = particles.size();
     auto maxJets = std::min(6, nParticles);
 
     if (maxJets == 0)
