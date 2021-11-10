@@ -66,6 +66,7 @@ class NNHProcessor : public marlin::Processor
     float visible_e = 0;
     float visible_pt = 0;
     float visible_m = 0;
+    float visible_recMass = 0;
     int   nParticles = 0;
 
     // Reco variables
@@ -111,6 +112,7 @@ class NNHProcessor : public marlin::Processor
     float mc_higgs_e = 0;
     float mc_higgs_pt = 0;
     float mc_higgs_m = 0;
+    float mc_higgs_recMass = 0;
 
     int mc_higgs_decay = 0;
     int mc_higgs_subDecay = 0;

@@ -74,6 +74,7 @@ void NNHProcessor::init()
     outputTree->Branch("visible_e", &visible_e);
     outputTree->Branch("visible_pt", &visible_pt);
     outputTree->Branch("visible_m", &visible_m);
+    outputTree->Branch("visible_recMass", &visible_recMass);
     outputTree->Branch("nParticles", &nParticles);
 
     outputTree->Branch("w1_m", &w1_m);
@@ -119,6 +120,7 @@ void NNHProcessor::init()
     outputTree->Branch("mc_higgs_e", &mc_higgs_e);
     outputTree->Branch("mc_higgs_pt", &mc_higgs_pt);
     outputTree->Branch("mc_higgs_m", &mc_higgs_m);
+    outputTree->Branch("mc_higgs_recMass", &mc_higgs_recMass);
     outputTree->Branch("mc_higgs_decay", &mc_higgs_decay);
     outputTree->Branch("mc_higgs_subDecay", &mc_higgs_subDecay);
 
@@ -162,6 +164,24 @@ fastjet::PseudoJet recoParticleToPseudoJet(EVENT::ReconstructedParticle* recoPar
     partInfo->setRecoParticle(recoPart);
     particle.set_user_info(partInfo);
     return particle;
+}
+
+double computeRecoilMass(const CLHEP::HepLorentzVector z4Vector, float energy)
+{
+    auto pTot = CLHEP::Hep3Vector(energy * std::sin(7e-3), 0, 0);
+    pTot = pTot - CLHEP::Hep3Vector(z4Vector.px(), z4Vector.py(), z4Vector.pz());
+    double rm = (energy - z4Vector.e()) * (energy - z4Vector.e()) - pTot.mag2();
+
+    if (rm < 0)
+        throw(std::logic_error("Impossible recoil mass : m2<0"));
+
+    rm = std::sqrt(rm);
+    return rm;
+}
+double computeRecoilMass(const fastjet::PseudoJet& particle, float energy)
+{
+    const auto vec = CLHEP::HepLorentzVector(particle.px(), particle.py(), particle.pz(), particle.e());
+    return computeRecoilMass(vec, energy);
 }
 
 void NNHProcessor::processISR(const EVENT::MCParticle* gamma0, const EVENT::MCParticle* gamma1)
@@ -218,6 +238,7 @@ void NNHProcessor::processHiggs(const EVENT::MCParticle* higgs)
     mc_higgs_e = -1;
     mc_higgs_pt = -1;
     mc_higgs_m = -1;
+    mc_higgs_recMass = -1;
     mc_higgs_decay = -1;
     mc_higgs_subDecay = -1;
 
@@ -255,6 +276,16 @@ void NNHProcessor::processHiggs(const EVENT::MCParticle* higgs)
     mc_higgs_e = higgs_4Vec.e();
     mc_higgs_pt = higgs_4Vec.perp();
     mc_higgs_m = higgs_4Vec.m();
+
+    try
+    {
+        mc_higgs_recMass = computeRecoilMass(higgs_4Vec, sqrtS);
+    }
+    catch (std::logic_error& e)
+    {
+        mc_higgs_recMass = 0;
+    }
+
     mc_higgs_decay = decay[0];
     mc_higgs_subDecay = decay[1];
 
@@ -299,24 +330,6 @@ std::array<fastjet::PseudoJet, 2> findParticleByMass(const std::vector<fastjet::
     }
 
     return toReturn;
-}
-
-double computeRecoilMass(const CLHEP::HepLorentzVector z4Vector, float energy)
-{
-    auto pTot = CLHEP::Hep3Vector(energy * std::sin(7e-3), 0, 0);
-    pTot = pTot - CLHEP::Hep3Vector(z4Vector.px(), z4Vector.py(), z4Vector.pz());
-    double rm = (energy - z4Vector.e()) * (energy - z4Vector.e()) - pTot.mag2();
-
-    if (rm < 0)
-        throw(std::logic_error("Impossible recoil mass : m2<0"));
-
-    rm = std::sqrt(rm);
-    return rm;
-}
-double computeRecoilMass(const fastjet::PseudoJet& particle, float energy)
-{
-    const auto vec = CLHEP::HepLorentzVector(particle.px(), particle.py(), particle.pz(), particle.e());
-    return computeRecoilMass(vec, energy);
 }
 
 std::array<int, 2> NNHProcessor::findDecayMode(const EVENT::MCParticle* part1, const EVENT::MCParticle* part2) const
@@ -591,6 +604,14 @@ void NNHProcessor::processEvent(LCEvent* evt)
         visible_e = jets_perN[1][0].e();
         visible_pt = jets_perN[1][0].pt();
         visible_m = jets_perN[1][0].m();
+        try
+        {
+            visible_recMass = computeRecoilMass(jets_perN[1][0], sqrtS);
+        }
+        catch (std::logic_error& e)
+        {
+            visible_recMass = 0;
+        }
     }
 
     // 3 jets study
