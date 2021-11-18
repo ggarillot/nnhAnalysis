@@ -1,5 +1,6 @@
 #pragma once
 
+#include <EVENT/ReconstructedParticle.h>
 #include <array>
 #include <vector>
 
@@ -47,6 +48,8 @@ class NNHProcessor : public marlin::Processor
     std::string mcParticleCollectionName{};
     std::string reconstructedParticleCollectionName{};
 
+    std::vector<std::string> isolatedLeptonsCollectionNames{};
+
     TFile* outputFile = nullptr;
     TTree* outputTree = nullptr;
 
@@ -55,6 +58,8 @@ class NNHProcessor : public marlin::Processor
     LCCollection* recoCol = nullptr;
 
     std::vector<fastjet::PseudoJet> particles{};
+
+    std::set<EVENT::ReconstructedParticle*> isolatedLeptons{};
 
     // event variables
     int   processID = 0;
@@ -68,6 +73,8 @@ class NNHProcessor : public marlin::Processor
     float visible_m = 0;
     float visible_recMass = 0;
     int   nParticles = 0;
+
+    int nIsoLep = 0;
 
     // Reco variables
     float w1_m = -1;

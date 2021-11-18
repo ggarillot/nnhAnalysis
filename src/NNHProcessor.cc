@@ -57,6 +57,10 @@ NNHProcessor::NNHProcessor()
 
     registerProcessorParameter("ReconstructedParticlesCollectionName", "Name of the reconstructed particles collection",
                                reconstructedParticleCollectionName, std::string("PandoraPFOs"));
+
+    registerProcessorParameter("IsolatedLeptonsCollectionNames",
+                               "Name of the reconstructed isolated leptons collections", isolatedLeptonsCollectionNames,
+                               {"IsolatedElectrons", "IsolatedMuons", "IsolatedTaus"});
 }
 
 void NNHProcessor::init()
@@ -76,6 +80,8 @@ void NNHProcessor::init()
     outputTree->Branch("visible_m", &visible_m);
     outputTree->Branch("visible_recMass", &visible_recMass);
     outputTree->Branch("nParticles", &nParticles);
+
+    outputTree->Branch("nIsoLep", &nIsoLep);
 
     outputTree->Branch("w1_m", &w1_m);
     outputTree->Branch("w1_pt", &w1_pt);
@@ -152,6 +158,7 @@ void NNHProcessor::clear()
 {
     isValid = false;
     particles.clear();
+    isolatedLeptons.clear();
 }
 
 fastjet::PseudoJet recoParticleToPseudoJet(EVENT::ReconstructedParticle* recoPart)
@@ -506,6 +513,20 @@ void NNHProcessor::processEvent(LCEvent* evt)
     processID = evt->getParameters().getIntVal(std::string("ProcessID"));
     event = evt->getParameters().getIntVal(std::string("Event Number"));
     sqrtS = evt->getParameters().getFloatVal(std::string("Energy"));
+
+    for (const auto& colName : isolatedLeptonsCollectionNames)
+    {
+        auto col = evt->getCollection(colName);
+        auto n = col->getNumberOfElements();
+
+        for (auto i = 0; i < n; ++i)
+        {
+            auto particle = dynamic_cast<EVENT::ReconstructedParticle*>(col->getElementAt(i));
+            isolatedLeptons.insert(particle);
+        }
+    }
+
+    nIsoLep = isolatedLeptons.size();
 
     recoCol = evt->getCollection(reconstructedParticleCollectionName);
     nParticles = recoCol->getNumberOfElements();
