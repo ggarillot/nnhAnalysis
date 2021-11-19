@@ -58,6 +58,9 @@ NNHProcessor::NNHProcessor()
     registerProcessorParameter("ReconstructedParticlesCollectionName", "Name of the reconstructed particles collection",
                                reconstructedParticleCollectionName, std::string("PandoraPFOs"));
 
+    registerProcessorParameter("IsolatedPhotonsCollectionName", "Name of the reconstructed isolated photon collection",
+                               isolatedPhotonsCollectionName, std::string("IsolatedPhotons"));
+
     registerProcessorParameter("IsolatedLeptonsCollectionNames",
                                "Name of the reconstructed isolated leptons collections", isolatedLeptonsCollectionNames,
                                {"IsolatedElectrons", "IsolatedMuons", "IsolatedTaus"});
@@ -76,12 +79,16 @@ void NNHProcessor::init()
 
     outputTree->Branch("isValid", &isValid);
     outputTree->Branch("visible_e", &visible_e);
-    outputTree->Branch("visible_pt", &visible_pt);
-    outputTree->Branch("visible_m", &visible_m);
-    outputTree->Branch("visible_recMass", &visible_recMass);
     outputTree->Branch("nParticles", &nParticles);
 
     outputTree->Branch("nIsoLep", &nIsoLep);
+    outputTree->Branch("eIsoLep", &eIsoLep);
+
+    // Reco variables
+    outputTree->Branch("higgs_e", &higgs_e);
+    outputTree->Branch("higgs_pt", &higgs_pt);
+    outputTree->Branch("higgs_m", &higgs_m);
+    outputTree->Branch("higgs_recMass", &higgs_recMass);
 
     outputTree->Branch("w1_m", &w1_m);
     outputTree->Branch("w1_pt", &w1_pt);
@@ -158,7 +165,7 @@ void NNHProcessor::clear()
 {
     isValid = false;
     particles.clear();
-    isolatedLeptons.clear();
+    isolatedRecoParticles.clear();
 }
 
 fastjet::PseudoJet recoParticleToPseudoJet(EVENT::ReconstructedParticle* recoPart)
@@ -514,6 +521,8 @@ void NNHProcessor::processEvent(LCEvent* evt)
     event = evt->getParameters().getIntVal(std::string("Event Number"));
     sqrtS = evt->getParameters().getFloatVal(std::string("Energy"));
 
+    // treat isolated leptons
+    eIsoLep = 0;
     for (const auto& colName : isolatedLeptonsCollectionNames)
     {
         auto col = evt->getCollection(colName);
@@ -522,22 +531,42 @@ void NNHProcessor::processEvent(LCEvent* evt)
         for (auto i = 0; i < n; ++i)
         {
             auto particle = dynamic_cast<EVENT::ReconstructedParticle*>(col->getElementAt(i));
-            isolatedLeptons.insert(particle);
+            isolatedRecoParticles.insert(particle);
+            eIsoLep += particle->getEnergy();
         }
     }
 
-    nIsoLep = isolatedLeptons.size();
+    nIsoLep = isolatedRecoParticles.size();
+
+    // add photons to the list of isolated particles
+    {
+        auto col = evt->getCollection(isolatedPhotonsCollectionName);
+        auto n = col->getNumberOfElements();
+
+        for (auto i = 0; i < n; ++i)
+        {
+            auto particle = dynamic_cast<EVENT::ReconstructedParticle*>(col->getElementAt(i));
+            isolatedRecoParticles.insert(particle);
+        }
+    }
 
     recoCol = evt->getCollection(reconstructedParticleCollectionName);
+
     nParticles = recoCol->getNumberOfElements();
+    visible_e = 0;
+
     particles.reserve(nParticles);
 
     for (int index = 0; index < nParticles; ++index)
     {
         auto recoPart = dynamic_cast<EVENT::ReconstructedParticle*>(recoCol->getElementAt(index));
 
+        visible_e += recoPart->getEnergy();
+
         auto particle = recoParticleToPseudoJet(recoPart);
-        particles.push_back(particle);
+
+        if (isolatedRecoParticles.find(recoPart) == isolatedRecoParticles.end())
+            particles.push_back(particle);
     }
 
     // MC stuff
@@ -599,7 +628,8 @@ void NNHProcessor::processEvent(LCEvent* evt)
     auto j = fastjet::JetDefinition(fastjet::ee_kt_algorithm);
     auto cs = fastjet::ClusterSequence(particles, j);
 
-    auto maxJets = std::min(6, nParticles);
+    int  nJets = particles.size();
+    auto maxJets = std::min(6, nJets);
 
     if (maxJets == 0)
     {
@@ -622,16 +652,16 @@ void NNHProcessor::processEvent(LCEvent* evt)
 
     if (!jets_perN[1].empty())
     {
-        visible_e = jets_perN[1][0].e();
-        visible_pt = jets_perN[1][0].pt();
-        visible_m = jets_perN[1][0].m();
+        higgs_e = jets_perN[1][0].e();
+        higgs_pt = jets_perN[1][0].pt();
+        higgs_m = jets_perN[1][0].m();
         try
         {
-            visible_recMass = computeRecoilMass(jets_perN[1][0], sqrtS);
+            higgs_recMass = computeRecoilMass(jets_perN[1][0], sqrtS);
         }
         catch (std::logic_error& e)
         {
-            visible_recMass = 0;
+            higgs_recMass = 0;
         }
     }
 
@@ -704,15 +734,7 @@ void NNHProcessor::processEvent(LCEvent* evt)
         zz_z2_m = smallZ.m();
     }
 
-    // if (nRecoParticles > 3)
-    // { // we need at least 4 reconstructed particles to study Y_ij distributions
-    //     reco_Y12 = jet_parameter(jets_final_bis[0], jets_final_bis[1], 250);
-    //     reco_Y13 = jet_parameter(jets_final_bis[0], jets_final_bis[2], 250);
-    //     reco_Y14 = jet_parameter(jets_final_bis[0], jets_final_bis[3], 250);
-    //     reco_Y23 = jet_parameter(jets_final_bis[1], jets_final_bis[2], 250);
-    //     reco_Y24 = jet_parameter(jets_final_bis[1], jets_final_bis[3], 250);
-    //     reco_Y34 = jet_parameter(jets_final_bis[2], jets_final_bis[3], 250);
-
+    // if not enough jets the yCut will be 0 and thus the log is indefinite so i put here the minimum possible value
     constexpr float minYCut = std::numeric_limits<float>::min();
     for (auto& yCut : yCutArray)
         yCut = std::max(yCut, minYCut);

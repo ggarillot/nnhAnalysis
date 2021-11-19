@@ -48,6 +48,7 @@ class NNHProcessor : public marlin::Processor
     std::string mcParticleCollectionName{};
     std::string reconstructedParticleCollectionName{};
 
+    std::string              isolatedPhotonsCollectionName{};
     std::vector<std::string> isolatedLeptonsCollectionNames{};
 
     TFile* outputFile = nullptr;
@@ -59,7 +60,7 @@ class NNHProcessor : public marlin::Processor
 
     std::vector<fastjet::PseudoJet> particles{};
 
-    std::set<EVENT::ReconstructedParticle*> isolatedLeptons{};
+    std::set<EVENT::ReconstructedParticle*> isolatedRecoParticles{};
 
     // event variables
     int   processID = 0;
@@ -69,14 +70,16 @@ class NNHProcessor : public marlin::Processor
     bool isValid = false;
 
     float visible_e = 0;
-    float visible_pt = 0;
-    float visible_m = 0;
-    float visible_recMass = 0;
     int   nParticles = 0;
-
-    int nIsoLep = 0;
+    int   nIsoLep = 0;
+    float eIsoLep = 0;
 
     // Reco variables
+    float higgs_e = 0;
+    float higgs_pt = 0;
+    float higgs_m = 0;
+    float higgs_recMass = 0;
+
     float w1_m = -1;
     float w1_pt = -1;
     float w1_e = -1;
