@@ -9,7 +9,7 @@ from Observer import Observer
 
 class Params:
     def __init__(self):
-        self.inputFileNames = []
+        self.inputFileName = ''
         self.outputFileName = ''
         self.maxRecordNumber = 0
         self.skip = 0
@@ -50,22 +50,21 @@ class NNHProcessorThread(threading.Thread):
 
         os.environ['MARLIN_DLL'] = f"{os.environ['NNH_HOME']}/lib/libnnhAnalysis.so"
 
-        fileList = ''
-        for fileName in params.inputFileNames:
-            fileList = f'{fileList}{fileName} '
+        os.system(f'mkdir -p ./logs')
 
         marlinCmd = f'''Marlin $NNH_HOME/script/NNH_steer.xml \\
-                        --global.LCIOInputFiles={fileList} \\
+                        --global.LCIOInputFiles={params.inputFileName} \\
                         --global.MaxRecordNumber={params.maxRecordNumber} \\
                         --global.SkipNEvents={params.skip} \\
-                        --NNHProcessor.RootFileName={params.outputFileName}'''
+                        --NNHProcessor.RootFileName={params.outputFileName} \\
+                        > logs/{params.inputFileName.rpartition('/')[-1]}.txt'''
 
         marlin = subprocess.Popen(marlinCmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         stdout, stderr = marlin.communicate()
 
         resultMsg = 'NNH_SUCCESS'
         if stderr:
-            print(f'ERROR for {fileList} :')
+            print(f'ERROR for {params.inputFileName} :')
             print(stderr.decode("utf-8"))
 
             resultMsg = 'NNH_FAIL'

@@ -51,23 +51,28 @@ class NNHProcessor : public marlin::Processor
     std::string              isolatedPhotonsCollectionName{};
     std::vector<std::string> isolatedLeptonsCollectionNames{};
 
+    std::string _2JetsCollectionName{};
+    std::string _3JetsCollectionName{};
+    std::string _4JetsCollectionName{};
+
     TFile* outputFile = nullptr;
     TTree* outputTree = nullptr;
 
     LCCollection* mcCol = nullptr;
-    LCCollection* linkCol = nullptr;
     LCCollection* recoCol = nullptr;
 
     std::vector<fastjet::PseudoJet> particles{};
 
-    std::set<EVENT::ReconstructedParticle*> isolatedRecoParticles{};
+    std::set<EVENT::ReconstructedParticle*> isolatedLeptons{};
+    std::set<EVENT::ReconstructedParticle*> isolatedPhotons{};
 
     // event variables
     int   processID = 0;
     int   event = 0;
     float sqrtS = -1;
 
-    bool isValid = false;
+    bool isValid_bb = false;
+    bool isValid_ww = false;
 
     float visible_e = 0;
     int   nParticles = 0;
@@ -78,7 +83,19 @@ class NNHProcessor : public marlin::Processor
     float higgs_e = 0;
     float higgs_pt = 0;
     float higgs_m = 0;
+    float higgs_cosTheta = -2;
     float higgs_recMass = 0;
+
+    float higgs_bTag1 = 0;
+    float higgs_bTag2 = 0;
+
+    float b1_m = -1;
+    float b1_pt = -1;
+    float b1_e = -1;
+
+    float b2_m = -1;
+    float b2_pt = -1;
+    float b2_e = -1;
 
     float w1_m = -1;
     float w1_pt = -1;
@@ -90,7 +107,8 @@ class NNHProcessor : public marlin::Processor
     float w2_e = -1;
     float w2_cosBetw = -2;
 
-    float higgs_cosBetw = -2;
+    float higgs_ww_cosBetw = -2;
+    float higgs_bb_cosBetw = -2;
 
     float y_12 = 0;
     float y_23 = 0;
@@ -104,8 +122,11 @@ class NNHProcessor : public marlin::Processor
     float sl_w_m = -1;
     float sl_rec_m = -1;
 
+    float oblateness = -1;
     float sphericity = -1;
     float cosThrust = -2;
+
+    float principleThrust = -1;
     float majorThrust = -1;
     float minorThrust = -1;
 

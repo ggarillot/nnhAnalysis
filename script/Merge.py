@@ -45,7 +45,7 @@ class MergeThread(threading.Thread):
 
     def merge(self, task):
 
-        haddCmd = f'hadd {task.outputFile}'
+        haddCmd = f'hadd -f {task.outputFile}'
 
         for file in task.inputFiles:
             haddCmd = f'{haddCmd} {file}'

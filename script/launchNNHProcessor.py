@@ -80,7 +80,7 @@ class AnalysisFlow(Observer):
 
     def launchNNHProcessor(self, inputFileName, outputFileName):
         params = NNHProcessor.Params()
-        params.inputFileNames = [inputFileName]
+        params.inputFileName = inputFileName
         params.outputFileName = outputFileName
         NNHProcessorThread.addParams(params)
 
@@ -205,7 +205,7 @@ class AnalysisFlow(Observer):
 
         fileNameList.sort()
 
-        #fileNameList = fileNameList[0:2]
+        # fileNameList = fileNameList[0:1]
 
         print(f'{processID} : {len(fileNameList)} files to process')
 
@@ -227,16 +227,18 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--filesDirectory', help='Path of remote files', required=True)
     parser.add_argument('-r', '--remote', help='indicate that files need to be downloaded', action='store_true', default=False)
     parser.add_argument('-o', '--outputDirectory', help='output directory', required=True)
-    parser.add_argument('-l', '--log', help='output in text files instead of terminal', action='store_true', default=False)
     args = vars(parser.parse_args())
 
     nCores = int(args['ncores'])
 
-    processesID = [402007, 402008, 402176, 402185, 402009, 402010, 402011, 402012, 402001, 402002, 402013, 402014, 402003, 402004,
+    processesID = [402173, 402182, 402007, 402008, 402176, 402185, 402009, 402010, 402011, 402012, 402001, 402002, 402013, 402014, 402003, 402004,
                    402005, 402006, 500006, 500008, 500010, 500012, 500062, 500064, 500066, 500068, 500070, 500072, 500074, 500076,
                    500078, 500080, 500082, 500084, 500101, 500102, 500103, 500104, 500105, 500106, 500107, 500108, 500110, 500112,
                    500086, 500088, 500090, 500092, 500094, 500096, 500098, 500100, 500113, 500114, 500115, 500116, 500117, 500118,
                    500119, 500120, 500122, 500124, 500125, 500126, 500127, 500128]
+
+    processesID = [402007, 500006]
+    # processesID = [402007]
 
     if args['processes']:
         processesID = []
@@ -248,10 +250,6 @@ if __name__ == "__main__":
     remote = False
     if args['remote']:
         remote = True
-
-    log = False
-    if args['log']:
-        log = True
 
     outputDirectory = args['outputDirectory']
 
@@ -266,3 +264,5 @@ if __name__ == "__main__":
 
     analysis.event.wait()
     AnalysisFlow.close()
+
+    os.system(f'mv ./logs {outputDirectory}/logs')
