@@ -70,7 +70,7 @@ NNHProcessor::NNHProcessor()
     registerProcessorParameter("2JetsCollectionName", "2 Jets Collection Name", _2JetsCollectionName,
                                std::string("Refined2Jets"));
     registerProcessorParameter("3JetsCollectionName", "3 Jets Collection Name", _3JetsCollectionName,
-                               std::string("Refined2Jets"));
+                               std::string("Refined3Jets"));
     registerProcessorParameter("4JetsCollectionName", "4 Jets Collection Name", _4JetsCollectionName,
                                std::string("Refined4Jets"));
 }
