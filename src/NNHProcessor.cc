@@ -33,22 +33,6 @@
 
 NNHProcessor aNNHProcessor;
 
-double dijDistance(const fastjet::PseudoJet& i, const fastjet::PseudoJet& j)
-{
-    CLHEP::Hep3Vector p_i(i.px(), i.py(), i.pz());
-    CLHEP::Hep3Vector p_j(j.px(), j.py(), j.pz());
-
-    auto cos_ij = p_i.dot(p_j) / (p_i.mag() * p_j.mag());
-    auto minE = std::min(i.e(), j.e());
-
-    return 2.0 * minE * (1 - cos_ij);
-}
-
-double yijDistance(const fastjet::PseudoJet& i, const fastjet::PseudoJet& j, const double Q)
-{
-    return dijDistance(i, j) / (Q * Q);
-}
-
 NNHProcessor::NNHProcessor()
     : Processor("NNHProcessor")
 {
@@ -660,7 +644,7 @@ void NNHProcessor::processEvent(LCEvent* evt)
     {
         isValid_bb = true;
         auto jets = std::vector<fastjet::PseudoJet>{};
-        for (const auto& lcioJet : _3Jets)
+        for (const auto& lcioJet : _2Jets)
             jets.push_back(recoParticleToPseudoJet(lcioJet));
 
         const auto higgs = join(jets[0], jets[1]);
