@@ -48,7 +48,7 @@ class NNHProcessorThread(threading.Thread):
 
     def launch(self, params: Params):
 
-        os.environ['MARLIN_DLL'] = f"{os.environ['NNH_HOME']}/lib/libnnhAnalysis.so"
+        os.environ['MARLIN_DLL'] = f"{os.environ['NNH_HOME']}/processor/lib/libnnhProcessor.so"
 
         os.system(f'mkdir -p ./logs')
 
