@@ -178,7 +178,7 @@ double computeRecoilMass(const CLHEP::HepLorentzVector z4Vector, float energy)
     double rm = (energy - z4Vector.e()) * (energy - z4Vector.e()) - pTot.mag2();
 
     if (rm < 0)
-        throw(std::logic_error("Impossible recoil mass : m2<0"));
+        return 0;
 
     rm = std::sqrt(rm);
     return rm;
@@ -282,14 +282,7 @@ void NNHProcessor::processHiggs(const EVENT::MCParticle* higgs)
     mc_higgs_pt = higgs_4Vec.perp();
     mc_higgs_m = higgs_4Vec.m();
 
-    try
-    {
-        mc_higgs_recMass = computeRecoilMass(higgs_4Vec, sqrtS);
-    }
-    catch (std::logic_error& e)
-    {
-        mc_higgs_recMass = 0;
-    }
+    mc_higgs_recMass = computeRecoilMass(higgs_4Vec, sqrtS);
 
     mc_higgs_decay = decay[0];
     mc_higgs_subDecay = decay[1];
@@ -638,7 +631,7 @@ void NNHProcessor::processEvent(LCEvent* evt)
     std::sort(_3Jets.begin(), _3Jets.end(), sortJetsByEnergy);
     std::sort(_4Jets.begin(), _4Jets.end(), sortJetsByEnergy);
 
-    if (_2Jets.size() < 2)
+    if (_2Jets.size() != 2)
         isValid_bb = false;
     else
     {
@@ -655,14 +648,7 @@ void NNHProcessor::processEvent(LCEvent* evt)
         higgs_m = higgs.m();
         higgs_cosTheta = higgs_mom.cosTheta();
 
-        try
-        {
-            higgs_recMass = computeRecoilMass(higgs, sqrtS);
-        }
-        catch (std::logic_error& e)
-        {
-            higgs_recMass = 0;
-        }
+        higgs_recMass = computeRecoilMass(higgs, sqrtS);
 
         b1_m = jets[0].m();
         b1_pt = jets[0].pt();
@@ -679,6 +665,7 @@ void NNHProcessor::processEvent(LCEvent* evt)
 
         higgs_bTag1 = 0;
         higgs_bTag2 = 0;
+
         y_12 = 0;
         y_23 = 0;
         y_34 = 0;
@@ -750,22 +737,12 @@ void NNHProcessor::processEvent(LCEvent* evt)
         auto W = join(W_jetPair[0], W_jetPair[1]);
 
         sl_w_m = W.m();
-
-        try
-        {
-            sl_rec_m = computeRecoilMass(W, sqrtS);
-        }
-        catch (std::logic_error& e)
-        {
-            streamlog_out(DEBUG) << "Run : " << evt->getRunNumber() << ", Event : " << evt->getEventNumber() << " :"
-                                 << "Impossible recoil mass !" << std::endl;
-            sl_rec_m = 0;
-        }
+        sl_rec_m = computeRecoilMass(W, sqrtS);
     }
 
     // 4 jets study
-    if (_4Jets.size() < 4)
-        isValid_bb = false;
+    if (_4Jets.size() != 4)
+        isValid_ww = false;
     else
     {
         isValid_ww = true;
