@@ -250,6 +250,8 @@ if __name__ == "__main__":
 
     outputDirectory = args['outputDirectory']
 
+    os.system(f'mkdir -p {outputDirectory}')
+
     nDownloadThreads = 0
     if remote:
         nDownloadThreads = 1
