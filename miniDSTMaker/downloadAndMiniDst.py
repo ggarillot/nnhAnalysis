@@ -129,14 +129,6 @@ class DownloadFlow(Observer):
 if __name__ == "__main__":
 
     NFILES = 1
-    with open("sizes.json") as file:
-        data = json.load(file)
-
-    processesID = list(data.keys())
-    for i in range(len(processesID)):
-        processesID[i] = int(processesID[i])
-
-    processesID = list(processesID)
 
     processesID = [402007, 402008, 402173, 402176, 402182, 402185, 402009, 402010, 402011, 402012, 402001, 402002,
                    402013, 402014, 402003, 402004, 402005, 402006, 500006, 500008, 500010, 500012,
@@ -171,7 +163,7 @@ if __name__ == "__main__":
             if f'{processID}' in line:
                 existingFiles.append(line)
 
-        with open(f'./lfns/{processID}.lfns') as lfnsFile:
+        with open(f'$NNH_HOME/miniDSTMaker/lfns/{processID}.lfns') as lfnsFile:
             files = [line.strip('\n') for line in lfnsFile.readlines()]
 
         os.system(f'gfal-mkdir -p {UPLOAD_PATH}/{processID}')
