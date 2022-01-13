@@ -59,12 +59,12 @@ class MiniDSTThread(threading.Thread):
     def processFile(self, file: MiniDST, shutUp=True):
         cmd = f'''. /cvmfs/ilc.desy.de/sw/x86_64_gcc82_centos7/v02-02-03/init_ilcsoft.sh; Marlin $NNH_HOME/miniDSTMaker/mini-DST-maker.xml \\
                    --global.LCIOInputFiles={file.fileName} \\
-                   --LCIOOutputProcessor.LCIOOutputFile={file.outputFileName} \\
-                   --JC2FT.FlavorTag.WeightsDirectory=$NNH_HOME/miniDSTMaker/4q250_v04_p00_ildl5 \\
-                   --JC3FT.FlavorTag.WeightsDirectory=$NNH_HOME/miniDSTMaker/4q250_v04_p00_ildl5 \\
-                   --JC4FT.FlavorTag.WeightsDirectory=$NNH_HOME/miniDSTMaker/4q250_v04_p00_ildl5 \\
-                   --JC5FT.FlavorTag.WeightsDirectory=$NNH_HOME/miniDSTMaker/4q250_v04_p00_ildl5 \\
-                   --JC6FT.FlavorTag.WeightsDirectory=$NNH_HOME/miniDSTMaker/4q250_v04_p00_ildl5'''
+                   --LCIOOutputProcessor.LCIOOutputFile={file.outputFileName}'''
+        #    --JC2FT.FlavorTag.WeightsDirectory=$NNH_HOME/miniDSTMaker/4q250_ZZ_v4_p00_ildl5 \\
+        #    --JC3FT.FlavorTag.WeightsDirectory=$NNH_HOME/miniDSTMaker/4q250_ZZ_v4_p00_ildl5 \\
+        #    --JC4FT.FlavorTag.WeightsDirectory=$NNH_HOME/miniDSTMaker/4q250_ZZ_v4_p00_ildl5 \\
+        #    --JC5FT.FlavorTag.WeightsDirectory=$NNH_HOME/miniDSTMaker/4q250_ZZ_v4_p00_ildl5 \\
+        #    --JC6FT.FlavorTag.WeightsDirectory=$NNH_HOME/miniDSTMaker/4q250_ZZ_v4_p00_ildl5'''
 
         if not shutUp:
             print(cmd)
