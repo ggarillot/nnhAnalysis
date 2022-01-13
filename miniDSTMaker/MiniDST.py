@@ -76,7 +76,7 @@ class MiniDSTThread(threading.Thread):
             stdout = stdout.decode("utf-8")
             stdout = stdout.split('\n')
 
-        os.system(f'mkdir ./logs')
+        os.system(f'mkdir -p ./logs')
 
         isOK = False
 
