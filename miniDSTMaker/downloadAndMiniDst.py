@@ -1,5 +1,5 @@
 import os
-import json
+import sys
 import subprocess
 import threading
 
@@ -128,6 +128,10 @@ class DownloadFlow(Observer):
 
 if __name__ == "__main__":
 
+    if 'NNH_HOME' not in os.environ:
+        print('ERROR : env variable NNH_HOME is not set')
+        sys.exit(1)
+
     NFILES = 1
 
     processesID = [402007, 402008, 402173, 402176, 402182, 402185, 402009, 402010, 402011, 402012, 402001, 402002,
@@ -163,7 +167,7 @@ if __name__ == "__main__":
             if f'{processID}' in line:
                 existingFiles.append(line)
 
-        with open(f'$NNH_HOME/miniDSTMaker/lfns/{processID}.lfns') as lfnsFile:
+        with open(f'{os.environ["NNH_HOME"]}/miniDSTMaker/lfns/{processID}.lfns') as lfnsFile:
             files = [line.strip('\n') for line in lfnsFile.readlines()]
 
         os.system(f'gfal-mkdir -p {UPLOAD_PATH}/{processID}')
