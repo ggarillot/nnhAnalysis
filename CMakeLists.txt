@@ -44,4 +44,4 @@ ADD_DEFINITIONS( "-Wno-long-long" )
 ADD_DEFINITIONS( "-O3" )
 
 add_subdirectory(processor)
-add_subdirectory(analysis)
+#add_subdirectory(analysis)
