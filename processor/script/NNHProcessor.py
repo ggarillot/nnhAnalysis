@@ -52,7 +52,7 @@ class NNHProcessorThread(threading.Thread):
 
         os.system(f'mkdir -p ./logs')
 
-        marlinCmd = f'''Marlin $NNH_HOME/script/NNH_steer.xml \\
+        marlinCmd = f'''Marlin $NNH_HOME/processor/script/NNH_steer.xml \\
                         --global.LCIOInputFiles={params.inputFileName} \\
                         --global.MaxRecordNumber={params.maxRecordNumber} \\
                         --global.SkipNEvents={params.skip} \\

@@ -237,9 +237,6 @@ if __name__ == "__main__":
                    500086, 500088, 500090, 500092, 500094, 500096, 500098, 500100, 500113, 500114, 500115, 500116, 500117, 500118,
                    500119, 500120, 500122, 500124, 500125, 500126, 500127, 500128]
 
-    processesID = [402007, 500006]
-    # processesID = [402007]
-
     if args['processes']:
         processesID = []
         for p in args['processes']:
@@ -255,7 +252,7 @@ if __name__ == "__main__":
 
     nDownloadThreads = 0
     if remote:
-        nDownloadThreads = 8
+        nDownloadThreads = 1
 
     analysis = AnalysisFlow.initAnalysisFlow(nDownloadThreads, nCores, 1)
 
