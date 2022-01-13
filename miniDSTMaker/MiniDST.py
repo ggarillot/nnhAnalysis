@@ -69,19 +69,19 @@ class MiniDSTThread(threading.Thread):
             stdout = stdout.decode("utf-8")
             stdout = stdout.split('\n')
 
-        with open(f"{file.fileName}.txt", 'w') as logFile:
-            for line in stdout:
-                logFile.write(f'{line}\n')
-
-        resultMsg = ''
+        os.system(f'mkdir ./logs')
 
         isOK = False
 
-        for line in stdout:
-            if "LCIOOutputProcessor::end()" in line:
-                isOK = True
-                print(line)
-                break
+        with open(f"./logs/{file.fileName}.txt", 'w') as logFile:
+            for line in stdout:
+                logFile.write(f'{line}\n')
+
+                if "LCIOOutputProcessor::end()" in line:
+                    isOK = True
+                    print(line)
+
+        resultMsg = ''
 
         if isOK:
             resultMsg = 'MINIDST_SUCCESS'
