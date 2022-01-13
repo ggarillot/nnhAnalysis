@@ -39,7 +39,6 @@
   <parameter name="Verbosity"> SILENT </parameter>
 </processor>
 
-
 <processor name="FastJetOverlay" type="FastJetProcessor">
   <parameter name="recParticleIn" type="string" lcioInType="ReconstructedParticle"> PandoraPFOs </parameter>
   <parameter name="jetOut" type="string" lcioOutType="ReconstructedParticle"> PFOsminusoverlayJets </parameter>
