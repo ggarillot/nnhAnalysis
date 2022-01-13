@@ -306,7 +306,7 @@
   <parameter name="MakeNtuple.AuxiliaryInfo" type="int" value="-1" />
   <!--parameter name="FlavorTag.WeightsDirectory" type="string" value="/afs/desy.de/user/s/skawada/sonas_work/mini-DST/lcfiweights"/--> <!-- e.g. lcfiweights/lcfiweights_6q500_v04_p00_ildl5 -->
   <!--parameter name="FlavorTag.WeightsPrefix" type="string" value="6q500_v04_p00_ildl5" /--> <!-- e.g. 6q500_v04_p00_ildl5 -->
-  <parameter name="FlavorTag.WeightsDirectory" type="string"> $NNH_HOME/miniDSTMaker/2q250_v4_p00_ildl5 </parameter>
+  <parameter name="FlavorTag.WeightsDirectory" type="string"> $NNH_HOME/miniDSTMaker/4q250_v04_p00_ildl5 </parameter>
   <parameter name="FlavorTag.WeightsPrefix" type="string" value="4q250_v04_p00_ildl5" />
   <parameter name="FlavorTag.BookName" type="string" value="bdt" />
   <parameter name="FlavorTag.PIDAlgo" type="string" value="lcfiplus" />
@@ -434,7 +434,7 @@
 
   <!--parameter name="FlavorTag.WeightsDirectory" type="string" value="/afs/desy.de/user/s/skawada/sonas_work/mini-DST/lcfiweights"/--> <!-- e.g. lcfiweights/lcfiweights_6q500_v04_p00_ildl5 -->
   <!--parameter name="FlavorTag.WeightsPrefix" type="string" value="6q500_v04_p00_ildl5" /--> <!-- e.g. 6q500_v04_p00_ildl5 -->
-  <parameter name="FlavorTag.WeightsDirectory" type="string"> $NNH_HOME/miniDSTMaker/2q250_v4_p00_ildl5 </parameter>
+  <parameter name="FlavorTag.WeightsDirectory" type="string"> $NNH_HOME/miniDSTMaker/4q250_v04_p00_ildl5 </parameter>
   <parameter name="FlavorTag.WeightsPrefix" type="string" value="4q250_v04_p00_ildl5" />
   <parameter name="FlavorTag.BookName" type="string" value="bdt" />
   <parameter name="FlavorTag.PIDAlgo" type="string" value="lcfiplus" />
@@ -562,7 +562,7 @@
 
   <!--parameter name="FlavorTag.WeightsDirectory" type="string" value="/afs/desy.de/user/s/skawada/sonas_work/mini-DST/lcfiweights"/--> <!-- e.g. lcfiweights/lcfiweights_6q500_v04_p00_ildl5 -->
   <!--parameter name="FlavorTag.WeightsPrefix" type="string" value="6q500_v04_p00_ildl5" /--> <!-- e.g. 6q500_v04_p00_ildl5 -->
-  <parameter name="FlavorTag.WeightsDirectory" type="string"> $NNH_HOME/miniDSTMaker/2q250_v4_p00_ildl5 </parameter>
+  <parameter name="FlavorTag.WeightsDirectory" type="string"> $NNH_HOME/miniDSTMaker/4q250_v04_p00_ildl5 </parameter>
   <parameter name="FlavorTag.WeightsPrefix" type="string" value="4q250_v04_p00_ildl5" />
   <parameter name="FlavorTag.BookName" type="string" value="bdt" />
   <parameter name="FlavorTag.PIDAlgo" type="string" value="lcfiplus" />
@@ -690,7 +690,7 @@
 
   <!--parameter name="FlavorTag.WeightsDirectory" type="string" value="/afs/desy.de/user/s/skawada/sonas_work/mini-DST/lcfiweights"/--> <!-- e.g. lcfiweights/lcfiweights_6q500_v04_p00_ildl5 -->
   <!--parameter name="FlavorTag.WeightsPrefix" type="string" value="6q500_v04_p00_ildl5" /--> <!-- e.g. 6q500_v04_p00_ildl5 -->
-  <parameter name="FlavorTag.WeightsDirectory" type="string"> $NNH_HOME/miniDSTMaker/2q250_v4_p00_ildl5 </parameter>
+  <parameter name="FlavorTag.WeightsDirectory" type="string"> $NNH_HOME/miniDSTMaker/4q250_v04_p00_ildl5 </parameter>
   <parameter name="FlavorTag.WeightsPrefix" type="string" value="4q250_v04_p00_ildl5" />
   <parameter name="FlavorTag.BookName" type="string" value="bdt" />
   <parameter name="FlavorTag.PIDAlgo" type="string" value="lcfiplus" />
@@ -818,7 +818,7 @@
 
   <!--parameter name="FlavorTag.WeightsDirectory" type="string" value="/afs/desy.de/user/s/skawada/sonas_work/mini-DST/lcfiweights"/--> <!-- e.g. lcfiweights/lcfiweights_6q500_v04_p00_ildl5 -->
   <!--parameter name="FlavorTag.WeightsPrefix" type="string" value="6q500_v04_p00_ildl5" /--> <!-- e.g. 6q500_v04_p00_ildl5 -->
-  <parameter name="FlavorTag.WeightsDirectory" type="string"> $NNH_HOME/miniDSTMaker/2q250_v4_p00_ildl5 </parameter>
+  <parameter name="FlavorTag.WeightsDirectory" type="string"> $NNH_HOME/miniDSTMaker/4q250_v04_p00_ildl5 </parameter>
   <parameter name="FlavorTag.WeightsPrefix" type="string" value="4q250_v04_p00_ildl5" />
   <parameter name="FlavorTag.BookName" type="string" value="bdt" />
   <parameter name="FlavorTag.PIDAlgo" type="string" value="lcfiplus" />
