@@ -57,14 +57,14 @@ $ python3 ./script/launchNNHProcessor.py -h
 ```
 For example, it you want to run all the files that are present on lyogrid06 (from a lyoui):
 ```
-$ python3 script/launchNNHProcessor.py -n 10 -f root://lyogrid06.in2p3.fr/dpm/in2p3.fr/home/calice/garillot/ILD/AHCAL -r -o /path/to/wherever/youwant
+$ python3 script/launchNNHProcessor.py -n 10 -i root://lyogrid06.in2p3.fr/dpm/in2p3.fr/home/calice/garillot/ILD/AHCAL -r -o /path/to/wherever/youwant
 ```
 Do not forget to put the ``-r`` argument to tell the script that the files need to be downloaded (from lyogrid06).
-It is unnecessary to ask for more than 10 threads on lyoui because the limiting factor is the transfer time between lyogrid06. The output path cannot be remote like the input path.
+It is unnecessary to ask for more than 10 threads on lyoui because the limiting factor is the transfer time between lyogrid06 and lyoui servers. The output path cannot be remote like the input path.
 
 If you want to run only files from processesID 402007 and 402008, and the input files are present locally : 
 ```
-$ python3 script/launchNNHProcessor.py -n 10 -p 402007 402008 -f /path/to/inputFiles -o /path/to/wherever/youwant
+$ python3 script/launchNNHProcessor.py -n 10 -p 402007 402008 -i /path/to/inputFiles -o /path/to/wherever/youwant
 ```
 
 The ``launchNNHProcessor.py`` script will create one ROOT file per processID (all the results from each mini-DST file are merged). It will also create a ``logs/`` folder in the output directory to check if something wrong happened (the script will output an error message if it has encountered a problem with one file).
@@ -88,10 +88,10 @@ This is the list of the variables that are written in the output ROOT file:
 - ``higgs_bTag2`` : b-tagging of the least energetic jet (for 2-jet reconstruction)
 - ``b1_e, b1_pt, b1_m`` : energy, transverse impulsion and mass of the most energetic b quark (for 2-jet reconstruction)
 - ``b2_e, b2_pt, b2_m`` : energy, transverse impulsion and mass of the least energetic b quark (for 2-jet reconstruction)
-- ``w1_e, w1_pt, w1_m`` : energy, transverse impulsion and mass of the on-shell W boson (for 4-jet reconstruction)
-- ``w2_e, w2_pt, w2_m`` : energy, transverse impulsion and mass of the off-shell W* boson (for 4-jet reconstruction)
-- ``w1_cosBetw`` : cosine of the angle between the two jets idenfified as the on-shell W boson (for 4-jet reconstruction)
-- ``w2_cosBetw`` : cosine of the angle between the two jets idenfified as the off-shell W* boson (for 4-jet reconstruction)
+- ``w1_e, w1_pt, w1_m`` : energy, transverse impulsion and mass of the reconstructed on-shell W boson (for 4-jet reconstruction)
+- ``w2_e, w2_pt, w2_m`` : energy, transverse impulsion and mass of the reconstructed off-shell W* boson (for 4-jet reconstruction)
+- ``w1_cosBetw`` : cosine of the angle between the two jets idenfified as the reconstructed on-shell W boson (for 4-jet reconstruction)
+- ``w2_cosBetw`` : cosine of the angle between the two jets idenfified as the reconstructed off-shell W* boson (for 4-jet reconstruction)
 - ``higgs_bb_cosBetw`` : cosine of the angle between the two reconstructed b quarks (for 2-jet reconstruction)
 - ``higgs_ww_cosBetw`` : cosine of the angle between the two reconstructed W bosons (for 4-jet reconstruction)
 - ``y_12, y_23, y_34, y_45, y_56, y_67`` : jet parameters (actually -log10(y_ij))
@@ -101,7 +101,7 @@ This is the list of the variables that are written in the output ROOT file:
 - ``sl_rec_m`` : recoil mass against the reconstructed W boson (3-jet reconstruction : used to supress the WW semi-leptonic background)
 - ``oblateness, sphericity, cosThrust, principleThrust, majorThrust, minorThrust`` : event shapes variables
 
-These following variables are debug variables and should not be used for cuts of feed the BDT (This is true MC-information) :
+These following variables are debug variables and should not be used for cuts or to feed the BDT (This is true MC-information) :
 - ``mc_ISR_e`` : total energy of ISR photons
 - ``mc_ISR_pt`` : total transverse impulsion of ISR photons
 - ``mc_nu_flavor`` : flavor of the two neutrinos
