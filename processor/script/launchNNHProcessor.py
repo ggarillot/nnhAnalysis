@@ -217,10 +217,6 @@ class AnalysisFlow(Observer):
 
 if __name__ == "__main__":
 
-    if 'NNH_HOME' not in os.environ:
-        print('ERROR : env variable NNH_HOME is not set')
-        sys.exit(1)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--ncores', help='Number of threads', required=False, default=8)
     parser.add_argument('-p', '--processes', help='ProcessIDs to analyse', required=False, nargs='+')
@@ -228,6 +224,10 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--remote', help='indicate that files need to be downloaded', action='store_true', default=False)
     parser.add_argument('-o', '--outputDirectory', help='output directory', required=True)
     args = vars(parser.parse_args())
+
+    if 'NNH_HOME' not in os.environ:
+        print('ERROR : env variable NNH_HOME is not set')
+        sys.exit(1)
 
     nCores = int(args['ncores'])
 
