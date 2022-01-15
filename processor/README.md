@@ -71,6 +71,9 @@ The ``launchNNHProcessor.py`` script will create one ROOT file per processID (al
 
 ## Output variables
 
+The Marlin processor will simultaneously output variables for the &nu;&nu;h (h &rarr; b bbar) and the &nu;&nu;h (h &rarr; WW* &rarr; qqqq) channels. The variables specific to the &nu;&nu;h (h &rarr; b bbar) channel are reconstructed using the 2-jet reconstruction, the 2-jets are identified as the two b quarks. The variables specific to the &nu;&nu;h (h &rarr; WW* &rarr; qqqq) channel are reconstructed using the 4-jet reconstruction. Amongst the 6 different jet pairings, the di-jet that has its mass closest to the true mass of the W boson is identified as the on-shell W boson and the two remaining jets are identified as the off-shell W* boson. The common variables to these two channels (higgs mass, energy...) are reconstructed using all the visible particles, minus isolated leptons and photons (the jet reconstruction is done on all particles minus isolated leptons and photons).
+
+
 This is the list of the variables that are written in the output ROOT file:
 - ``processID`` : processID of the event
 - ``event`` : event number (for debugging)
@@ -82,7 +85,7 @@ This is the list of the variables that are written in the output ROOT file:
 - ``nIsoLep`` : number of isolated leptons
 - ``eIsoLep`` : total energy of all isolated leptons
 - ``higgs_e, higgs_pt, higgs_m`` : energy, transverse impulsion and mass of the reconstructed higgs
-- ``higgs_cosTheta`` : cosine of angle of the higgs (with respect to z axis)
+- ``higgs_cosTheta`` : cosine of angle of the reconstructed higgs (with respect to z axis)
 - ``higgs_recMass`` : recoil mass against the reconstructed higgs (is set to 0 if the value is impossible (square root of a negative number))
 - ``higgs_bTag1`` : b-tagging of the most energetic jet (for 2-jet reconstruction)
 - ``higgs_bTag2`` : b-tagging of the least energetic jet (for 2-jet reconstruction)
@@ -127,7 +130,7 @@ The ``mc_higgs_subDecay`` variable is there to represent the subdecay in h &rarr
 - for WW* &rarr; qql&nu;, ``mc_higgs_subDecay == 31``, ``32`` or ``33`` (same lepton flavor logic)
 - for ZZ* &rarr; qq&nu;&nu;, ``mc_higgs_subDecay == 4`` (I did not care about the neutrino flavor here)
 - for ZZ* &rarr; llll, ``mc_higgs_subDecay == 511``, ``512``, ``513``, ``521``, etc... (second and third digit corresponding to the two present lepton flavors)
-- for WW* &rarr; l&nu;l&nu;, ``mc_higgs_subDecay == 611``, ``612``, ``613``, ``621``, etc... (same lepton flavor logic)
+- for WW* &rarr; l&nu;l&nu; and ZZ* &rarr; ll&nu;&nu;, ``mc_higgs_subDecay == 611``, ``612``, ``613``, ``621``, etc... (same lepton flavor logic)
 - for ZZ* &rarr; &nu;&nu;&nu;&nu;, ``mc_higgs_subDecay == 7``
 
 For decays other than h &rarr; WW* and h &rarr; ZZ*, ``mc_higgs_subDecay == 0``.
